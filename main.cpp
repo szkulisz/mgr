@@ -1,22 +1,17 @@
 #include <QCoreApplication>
-#include "SPI/SPIDevice.h"
+#include "AD5313_DAC/ad5313.h"
 using namespace exploringBB;
 
 
 int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
+    system("/home/szymon/mgr/init.sh");
 
-    SPIDevice *DAC = new SPIDevice(2,1);
-    DAC->setSpeed(400000);
-    DAC->setMode(SPIDevice::MODE1);
-   // DAC->setBitsPerWord(24);
-    unsigned char send[3],receive[3];
-    send[0] = 0b00110001; //write to and update DAC Channel A
-    send[1] = 0b00000000;
-    send[2] = 0b00000000;
-    DAC->transfer(send,receive, 3);
-
-    return a.exec();
+    AD5313 *DAC = new AD5313();
+//    DAC->write_voltage(5.f,2);
+//    DAC->write_voltage(4.5f,1);
+    //return a.exec();
+    return 0;
 }
 

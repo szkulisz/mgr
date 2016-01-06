@@ -65,7 +65,7 @@ SPIDevice::SPIDevice(unsigned int bus, unsigned int device):
  * @return 0 on a successful open of the file
  */
 int SPIDevice::open(){
-	//cout << "Opening the file: " << filename.c_str() << endl;
+    cout << "Opening the file: " << filename.c_str() << endl;
 	if ((this->file = ::open(filename.c_str(), O_RDWR))<0){
 		perror("SPI: Can't open device.");
 		return -1;
