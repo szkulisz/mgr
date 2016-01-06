@@ -111,7 +111,24 @@ int PWM::analogWrite(float voltage){
 	this->setFrequency(this->analogFrequency);
 	this->setPolarity(PWM::ACTIVE_LOW);
 	this->setDutyCycle((100.0f*voltage)/this->analogMax);
-	return this->run();
+    return this->run();
+}
+
+int PWM::calibrateAnalogMax2(float analogMax)
+{
+    if((analogMax<4.8f) || (analogMax>5.2f)) return -1;
+    else this->analogMax2 = analogMax;
+    return 0;
+
+}
+
+int PWM::analogWrite2(float voltage)
+{
+    if ((voltage<0.0f)||(voltage>analogMax2)) return -1;
+    this->setFrequency(this->analogFrequency);
+    this->setPolarity(PWM::ACTIVE_LOW);
+    this->setDutyCycle((100.0f*voltage)/this->analogMax);
+    return this->run();
 }
 
 int PWM::run(){
