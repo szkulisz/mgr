@@ -12,23 +12,22 @@ CONFIG -= app_bundle
 TEMPLATE = app
 
 SOURCES += main.cpp \
-    PWM/pwm.cpp \
-    PWM/util.cpp \
-    SPI/SPIDevice.cpp \
-    SPI/BusDevice.cpp \
-    AD5313_DAC/ad5313.cpp \
-    MCP23S17/mcp23s17.cpp
+    HARDWARE/PWM/pwm.cpp \
+    HARDWARE/PWM/util.cpp \
+    HARDWARE/SPI/SPIDevice.cpp \
+    HARDWARE/SPI/BusDevice.cpp \
+    HARDWARE/AD5313_DAC/ad5313.cpp \
+    HARDWARE/MCP23S17/mcp23s17.cpp \
+    HARDWARE/enkodery.cpp
 
 HEADERS += \
-    PWM/pwm.h \
-    PWM/util.h \
-    SPI/SPIDevice.h \
-    SPI/BusDevice.h \
-    ad5313.h \
-    AD5313_DAC/ad5313.h \
-    mcp23s17.h \
-    MCP23S17/mcp23s17.h
+    HARDWARE/PWM/pwm.h \
+    HARDWARE/PWM/util.h \
+    HARDWARE/SPI/SPIDevice.h \
+    HARDWARE/SPI/BusDevice.h \
+    HARDWARE/AD5313_DAC/ad5313.h \
+    HARDWARE/MCP23S17/mcp23s17.h \
+    HARDWARE/enkodery.h
 
-RESOURCES += \
-    mcp23s17.qrc
+
 

@@ -1,7 +1,7 @@
 #ifndef AD5313_H
 #define AD5313_H
 
-#include "SPI/SPIDevice.h"
+#include "HARDWARE/SPI/SPIDevice.h"
 
 using namespace exploringBB;
 
@@ -15,6 +15,7 @@ class AD5313
 public:
     AD5313();
 
+    AD5313(unsigned int bus, unsigned int device, unsigned int speed, SPIDevice::SPIMODE mode);
 
     /**
      * @brief write_voltage
@@ -29,6 +30,7 @@ public:
      *  0:  ok
      */
     int write_voltage(float voltage, int channel);
+
 
 private:
     SPIDevice *device;
