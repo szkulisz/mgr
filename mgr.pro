@@ -8,6 +8,7 @@ INSTALLS += target
 
 CONFIG += console
 CONFIG -= app_bundle
+CONFIG += c++11
 
 TEMPLATE = app
 
@@ -18,7 +19,8 @@ SOURCES += main.cpp \
     HARDWARE/SPI/BusDevice.cpp \
     HARDWARE/AD5313_DAC/ad5313.cpp \
     HARDWARE/MCP23S17/mcp23s17.cpp \
-    HARDWARE/enkodery.cpp
+    HARDWARE/GPIO/GPIO.cpp \
+    HARDWARE/encoder.cpp
 
 HEADERS += \
     HARDWARE/PWM/pwm.h \
@@ -27,7 +29,10 @@ HEADERS += \
     HARDWARE/SPI/BusDevice.h \
     HARDWARE/AD5313_DAC/ad5313.h \
     HARDWARE/MCP23S17/mcp23s17.h \
-    HARDWARE/enkodery.h
+    HARDWARE/GPIO/GPIO.h \
+    HARDWARE/encoder.h
 
 
-
+QMAKE_CXXFLAGS += -pthread
+QMAKE_CFLAGS += -pthread
+LIBS += -pthread

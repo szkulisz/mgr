@@ -34,7 +34,7 @@ public:
 
 private:
     SPIDevice *device;
-    unsigned char tx_buf[3];
+    unsigned char tx_buf[3] = {0,0,0};
 };
 
 #endif // AD5313_H
