@@ -5,7 +5,7 @@ AD5313::AD5313()
 {
     device = new SPIDevice(2,1);
     device->setSpeed(400000);
-    device->setMode(SPIDevice::MODE0);
+    device->setMode(SPIDevice::MODE1);
     memset(tx_buf, 0, sizeof(tx_buf));
 }
 

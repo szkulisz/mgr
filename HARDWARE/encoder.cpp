@@ -1,9 +1,14 @@
 #include "encoder.h"
 #include <unistd.h>
 
+using namespace exploringBB;
+
 Encoder::Encoder()
 {
     expander = new MCP23S17(2,0,1000000,SPIDevice::MODE1);
+    int v,d;
+    unsigned char regs[2];
+    unsigned char t,y;
     pin_reset = new GPIO(14);
     pin_enable = new GPIO(49);
     pin_select = new GPIO(115);
@@ -12,12 +17,22 @@ Encoder::Encoder()
     pin_select-> setDirection(OUTPUT);
     release();
     reset();
+    this->pin_select->setValue(HIGH);
+    this->pin_enable->setValue(HIGH);
+    this->pin_select->setValue(LOW);
+    this->pin_enable->setValue(LOW);
+    this->expander->read_registers(MCP23S17::GPIOA, 2, regs);
+    unsigned char values[2];
+    read_bytes(LESS, t,y);
+    read_values(v,d);
+    int ret = this->expander->read_registers(MCP23S17::GPIOA, 2, values);
+
 }
 
 void Encoder::reset()
 {
     pin_reset->setValue(HIGH);
-    usleep(1);
+    usleep(10);
     pin_reset->setValue(LOW);
 }
 
@@ -50,13 +65,13 @@ int Encoder::read_values(int &chart, int &pend)
 
 void Encoder::release()
 {
-    pin_enable-> setValue(LOW);
-    pin_select-> setValue(LOW);
+    pin_enable-> setValue(HIGH);
+    pin_select-> setValue(HIGH);
 }
 
 int Encoder::read_bytes(Encoder::BYTE byte, unsigned char &chart, unsigned char &pend)
 {
-    unsigned char values[2];
+    unsigned char valuesert[2];
 //    memset(values, 0, sizeof(values));
 
     pin_enable-> setValue(HIGH);
@@ -65,14 +80,15 @@ int Encoder::read_bytes(Encoder::BYTE byte, unsigned char &chart, unsigned char 
     }else{
         pin_select-> setValue(LOW);
     }
-    int ret = expander->read_registers(MCP23S17::GPIOA, 2, values);
+//    usleep(1000000);
+    int ret = this->expander->read_registers(MCP23S17::GPIOA, 2, valuesert);
     if (ret<0){
-        values[0] = 0xFF;
-        values[1] = 0xFF;
+        valuesert[0] = 0xFF;
+        valuesert[1] = 0xFF;
     }
 //    release();
-    chart = values[0];
-    pend = values[0];
+    chart = valuesert[0];
+    pend = valuesert[1];
     return ret;
 
 }

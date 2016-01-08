@@ -41,6 +41,7 @@ int MCP23S17::read_register(unsigned char adress, unsigned char &reg)
 
     tx_buf[0] = 0b01001111;
     tx_buf[1] = adress;
+    tx_buf[2] = 0;
 
     int status = device->transfer(tx_buf, receive, 3);
     if (status <= 0){
@@ -57,7 +58,7 @@ int MCP23S17::read_registers(unsigned char adress_of_first_reg, int number_of_re
         return -2;
     }
 
-    unsigned char receive[number_of_reg + 2];
+    unsigned char receive[5 + 2];
     memset(receive, 0, sizeof receive);
 
     tx_buf[0] = 0b01001111;
