@@ -1,4 +1,4 @@
-QT += core
+QT += core sql network
 QT -= gui
 
 TARGET = mgr
@@ -20,7 +20,17 @@ SOURCES += main.cpp \
     HARDWARE/AD5313_DAC/ad5313.cpp \
     HARDWARE/MCP23S17/mcp23s17.cpp \
     HARDWARE/GPIO/GPIO.cpp \
-    HARDWARE/encoder.cpp
+    HARDWARE/encoder.cpp \
+    regulatory/regulator.cpp \
+    regulatory/regulatorp.cpp \
+    regulatory/regulatorpid.cpp \
+    regulatory/dekorator_sygnalu.cpp \
+    objekt_siso.cpp \
+    petla.cpp \
+    odczyt_xml.cpp \
+    tinyxml2.cpp \
+    wahadlo.cpp \
+    program.cpp
 
 HEADERS += \
     HARDWARE/PWM/pwm.h \
@@ -30,7 +40,17 @@ HEADERS += \
     HARDWARE/AD5313_DAC/ad5313.h \
     HARDWARE/MCP23S17/mcp23s17.h \
     HARDWARE/GPIO/GPIO.h \
-    HARDWARE/encoder.h
+    HARDWARE/encoder.h \
+    regulatory/regulator.h \
+    regulatory/regulatorp.h \
+    regulatory/regulatorpid.h \
+    regulatory/dekorator_sygnalu.h \
+    objekt_siso.h \
+    petla.h \
+    odczyt_xml.h \
+    tinyxml2.h \
+    wahadlo.h \
+    program.h
 
 
 QMAKE_CXXFLAGS += -pthread

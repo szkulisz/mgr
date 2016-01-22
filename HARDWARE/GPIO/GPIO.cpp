@@ -109,6 +109,8 @@ int GPIO::setDirection(GPIO_DIRECTION dir){
    return -1;
 }
 
+
+
 int GPIO::setValue(GPIO_VALUE value){
    switch(value){
    case HIGH: return this->write(this->path, "value", "1");

@@ -6,9 +6,6 @@ using namespace exploringBB;
 Encoder::Encoder()
 {
     expander = new MCP23S17(2,0,1000000,SPIDevice::MODE1);
-    int v,d;
-    unsigned char regs[2];
-    unsigned char t,y;
     pin_reset = new GPIO(14);
     pin_enable = new GPIO(49);
     pin_select = new GPIO(115);
@@ -17,16 +14,6 @@ Encoder::Encoder()
     pin_select-> setDirection(OUTPUT);
     release();
     reset();
-    this->pin_select->setValue(HIGH);
-    this->pin_enable->setValue(HIGH);
-    this->pin_select->setValue(LOW);
-    this->pin_enable->setValue(LOW);
-    this->expander->read_registers(MCP23S17::GPIOA, 2, regs);
-    unsigned char values[2];
-    read_bytes(LESS, t,y);
-    read_values(v,d);
-    int ret = this->expander->read_registers(MCP23S17::GPIOA, 2, values);
-
 }
 
 void Encoder::reset()
@@ -39,6 +26,7 @@ void Encoder::reset()
 int Encoder::read_values(int &chart, int &pend)
 {
     unsigned char chart_more, chart_less, pend_more, pend_less;
+    static int prev_chart = 0;
 
     release();
     read_bytes(MORE, chart_more, pend_more);
@@ -51,6 +39,15 @@ int Encoder::read_values(int &chart, int &pend)
     if (chart & 0x00008000) {
         chart |= 0xFFFF8000;
     }
+    if ((chart - prev_chart) > 300){
+        chart = chart - 514;
+    } else {
+        if ((chart - prev_chart) < -300)
+            chart = chart + 514;
+    }
+
+    prev_chart = chart;
+
     pend = pend_more;
     pend <<= 8;
     pend += pend_less;
@@ -65,8 +62,8 @@ int Encoder::read_values(int &chart, int &pend)
 
 void Encoder::release()
 {
-    pin_enable-> setValue(HIGH);
-    pin_select-> setValue(HIGH);
+    pin_enable-> setValue(LOW);
+    pin_select-> setValue(LOW);
 }
 
 int Encoder::read_bytes(Encoder::BYTE byte, unsigned char &chart, unsigned char &pend)
