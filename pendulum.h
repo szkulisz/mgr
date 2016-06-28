@@ -10,17 +10,20 @@ public:
     Pendulum();
     ~Pendulum();
     int control(float u);
-    void getPositions(int &cart, int &pendulum);
+    void getPositions(float &cart, float &pendulum);
+    float getPendulumAngle() const;
+    float getCartPosition() const;
+    void readEncoderValues();
 
-
+private:
     Encoder *mEncoder;
     AD5313 *mDAC;
-    int mCartPosition;
-    int mPendulumAngle;
+    int mCartEncoder = 0;
+    int mPendulumEncoder = 0;
+    float mCartPosition = 0;
+    float mPendulumAngle = 0;
 
-    int getPendulumAngle() const;
-    int getCartPosition() const;
-    void getPositions();
+
 };
 
 #endif // WAHADLO_H

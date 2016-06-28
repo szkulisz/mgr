@@ -30,7 +30,7 @@ void Petla::krok(){
     static float anglePrev, uMax = 0.5;
     float angle, deriv;
     int sgn;
-    wahadlo->getPositions();
+    wahadlo->readEncoderValues();
     switch (mPhase) {
     case 0:
         angle = (-wahadlo->getPendulumAngle()*M_PI/1000) + M_PI;

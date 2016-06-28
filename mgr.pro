@@ -32,7 +32,8 @@ SOURCES += main.cpp \
     program.cpp \
     profiler.cpp \
     pendulum.cpp \
-    controller.cpp
+    controller.cpp \
+    pid.cpp
 
 HEADERS += \
     HARDWARE/PWM/pwm.h \
@@ -54,7 +55,8 @@ HEADERS += \
     program.h \
     profiler.h \
     pendulum.h \
-    controller.h
+    controller.h \
+    pid.h
 
 
 QMAKE_CXXFLAGS += -pthread

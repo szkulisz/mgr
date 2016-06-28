@@ -15,32 +15,25 @@ Program::Program(QObject *parent) : QObject(parent)
     parametry["max"] = 0.5f;
     parametry["min"] = -0.5f;
 
-    petla = new Petla( new RegulatorPID(parametry));
-    petla->wahadlo->control(0.f);
-    petla->ustaw_wartosc_zadana(0.f);
-//    petla->ustaw_wartosc_zadana(new Sygnal_prost(1000, 500, 0.5, new Sygnal_0));
+
 
     mPendulumController.setPeriod(1000);
     std::cout << "start" << std::endl;
     mPendulumController.start();
-    sleep(1);
-    std::cout << "Cart: " << mPendulumController.getCartPosition() << std::endl;
-    std::cout << "Pend: " << mPendulumController.getPendulumAngle() << std::endl;
-    sleep(1);
-    std::cout << "Cart: " << mPendulumController.getCartPosition() << std::endl;
-    std::cout << "Pend: " << mPendulumController.getPendulumAngle() << std::endl;
-    sleep(1);
-    std::cout << "Cart: " << mPendulumController.getCartPosition() << std::endl;
-    std::cout << "Pend: " << mPendulumController.getPendulumAngle() << std::endl;
-    sleep(1);
-    std::cout << "Cart: " << mPendulumController.getCartPosition() << std::endl;
-    std::cout << "Pend: " << mPendulumController.getPendulumAngle() << std::endl;
-    sleep(1);
-    std::cout << "Cart: " << mPendulumController.getCartPosition() << std::endl;
-    std::cout << "Pend: " << mPendulumController.getPendulumAngle() << std::endl;
+    mPendulumController.startController();
+    for (int i=0; i<10; ++i){
+        std::cout << "Cart: " << mPendulumController.getCartPosition() << std::endl;
+        std::cout << "Pend: " << mPendulumController.getPendulumAngle() << std::endl;
+        sleep(1);
+    }
     mPendulumController.quit();
     mPendulumController.wait();
     std::cout << "koniec" << std::endl;
+
+    petla = new Petla( new RegulatorPID(parametry));
+    petla->wahadlo->control(0.f);
+    petla->ustaw_wartosc_zadana(0.f);
+//    petla->ustaw_wartosc_zadana(new Sygnal_prost(1000, 500, 0.5, new Sygnal_0));
 
     // create a timer
     timer = new QTimer(this);

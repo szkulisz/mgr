@@ -1,4 +1,5 @@
 #include "pendulum.h"
+#include <math.h>
 
 Pendulum::Pendulum()
 {
@@ -8,6 +9,7 @@ Pendulum::Pendulum()
 
 Pendulum::~Pendulum()
 {
+    mDAC->writeVoltage(2.5f,1);
     delete mEncoder;
     delete mDAC;
 }
@@ -17,22 +19,25 @@ int Pendulum::control(float u)
     return mDAC->writeVoltage(u + 2.5f, 1);
 }
 
-void Pendulum::getPositions(int &cart, int &pendulum)
+void Pendulum::getPositions(float &cart, float &pendulum)
 {
-    mEncoder->readValues(cart, pendulum);
+    cart = mCartPosition;
+    pendulum = mPendulumAngle;
 }
 
-void Pendulum::getPositions()
+void Pendulum::readEncoderValues()
 {
-    mEncoder->readValues(mCartPosition, mPendulumAngle);
+    mEncoder->readValues(mCartEncoder, mPendulumEncoder);
+    mPendulumAngle = (-mPendulumEncoder*M_PI/1000.f) + M_PI;
+    mCartPosition = mCartEncoder/12844.f;
 }
 
-int Pendulum::getCartPosition() const
+float Pendulum::getCartPosition() const
 {
     return mCartPosition;
 }
 
-int Pendulum::getPendulumAngle() const
+float Pendulum::getPendulumAngle() const
 {
     return mPendulumAngle;
 }
