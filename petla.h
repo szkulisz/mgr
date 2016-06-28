@@ -3,7 +3,7 @@
 
 #include <memory>
 #include "regulatory/regulator.h"
-#include "wahadlo.h"
+#include "pendulum.h"
 #include <string>
 #include <deque>
 
@@ -34,10 +34,11 @@ public:
     void nowy_regulator(Regulator *reg);
 
     int s_aktualne_wyjscie = 0;
+    int mPhase=0;
 //private:
 //    std::unique_ptr< Regulator > s_reg1;
     Regulator *s_reg1;
-    Wahadlo *wahadlo;
+    Pendulum *wahadlo;
 
 };
 

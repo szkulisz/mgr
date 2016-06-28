@@ -28,6 +28,7 @@
 #include<fstream>
 using std::string;
 using std::ofstream;
+using std::fstream;
 
 #define GPIO_PATH "/sys/class/gpio/"
 
@@ -42,6 +43,7 @@ class GPIO {
 private:
 	int number, debounceTime;
 	string name, path;
+    fstream fsActiveLow, fsDirection, fsValue, fsEdge, fsExport, fsUnexport;
 
 public:
 	GPIO(int number); //constructor will export the pin

@@ -57,19 +57,56 @@ GPIO::GPIO(int number) {
 	this->name = string(s.str());
 	this->path = GPIO_PATH + this->name + "/";
 	this->exportGPIO();
-	// need to give Linux time to set up the sysfs structure
-	usleep(250000); // 250ms delay
+    // need to give Linux time to set up the sysfs structure
+    usleep(250000); // 250ms delay
+    fsActiveLow.open((path+"active_low").c_str());
+    if (!fsActiveLow.is_open()) {
+        perror("GPIO: failed to open file");
+    }
+    fsDirection.open((path+"direction").c_str());
+    if (!fsDirection.is_open()) {
+        perror("GPIO: failed to open file");
+    }
+    fsEdge.open((path+"edge").c_str());
+    if (!fsEdge.is_open()) {
+        perror("GPIO: failed to open file");
+    }
+    fsValue.open((path+"value").c_str());
+    if (!fsValue.is_open()) {
+        perror("GPIO: failed to open file");
+    }
 }
 
 int GPIO::write(string path, string filename, string value){
-   ofstream fs;
-   fs.open((path + filename).c_str());
-   if (!fs.is_open()){
-	   perror("GPIO: write failed to open file ");
-	   return -1;
-   }
-   fs << value;
-   fs.close();
+//   ofstream fs;
+//   fs.open((path + filename).c_str());
+//   if (!fs.is_open()){
+//	   perror("GPIO: write failed to open file ");
+//	   return -1;
+//   }
+//   fs << value;
+//   fs.close();
+    if (filename == "active_low") {
+        fsActiveLow << value;
+        fsActiveLow.flush();
+    } else if (filename == "direction") {
+        fsDirection << value;
+        fsDirection.flush();
+    } else if (filename == "edge") {
+        fsEdge << value;
+        fsEdge.flush();
+    } else if (filename == "value") {
+        fsValue << value;
+        fsValue.flush();
+    } else if (filename == "export") {
+        fsExport << value;
+        fsExport.flush();
+    } else if (filename == "unexport") {
+        fsUnexport << value;
+        fsUnexport.flush();
+    } else {
+        return -1;
+    }
    return 0;
 }
 
@@ -92,11 +129,29 @@ int GPIO::write(string path, string filename, int value){
 }
 
 int GPIO::exportGPIO(){
-   return this->write(GPIO_PATH, "export", this->number);
+    ofstream fs;
+    fs.open((string(GPIO_PATH)+"export").c_str());
+    if (!fs.is_open()){
+        perror("GPIO: export failed to open file ");
+        return -1;
+    }
+    fs << this->number;
+    fs.close();
+    return 0;
+//   return this->write(GPIO_PATH, "export", this->number);
 }
 
 int GPIO::unexportGPIO(){
-   return this->write(GPIO_PATH, "unexport", this->number);
+    ofstream fs;
+    fs.open((string(GPIO_PATH)+"unexport").c_str());
+    if (!fs.is_open()){
+        perror("GPIO: unexport failed to open file ");
+        return -1;
+    }
+    fs << this->number;
+    fs.close();
+    return 0;
+//   return this->write(GPIO_PATH, "unexport", this->number);
 }
 
 int GPIO::setDirection(GPIO_DIRECTION dir){
@@ -276,6 +331,12 @@ int GPIO::waitForEdge(CallbackType callback){
 
 GPIO::~GPIO() {
 	this->unexportGPIO();
+    fsActiveLow.close();
+    fsDirection.close();
+    fsEdge.close();
+    fsValue.close();
+    fsExport.close();
+    fsUnexport.close();
 }
 
 } /* namespace exploringBB */

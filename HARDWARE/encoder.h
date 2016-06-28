@@ -14,18 +14,18 @@ public:
     Encoder();
 
     void reset();
-    int read_values(int &chart, int &pend);
+    int readValues(int &cart, int &pend);
 
 
 //private:
-    MCP23S17 *expander;
-    GPIO *pin_reset;
-    GPIO *pin_enable;
-    GPIO *pin_select;
+    MCP23S17 *mExpander;
+    GPIO *mPinReset;
+    GPIO *mPinEnable;
+    GPIO *mPinSelect;
 
     void release();
-    int read_bytes(BYTE byte, unsigned char &chart, unsigned char &pend);
-    int read_byte(WHICH which, BYTE byte, unsigned char &value);
+    int readBytes(BYTE byte, unsigned char &cart, unsigned char &pend);
+    int readByte(WHICH which, BYTE byte, unsigned char &value);
 };
 
 #endif // ENCODER_H

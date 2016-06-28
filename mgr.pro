@@ -29,8 +29,10 @@ SOURCES += main.cpp \
     petla.cpp \
     odczyt_xml.cpp \
     tinyxml2.cpp \
-    wahadlo.cpp \
-    program.cpp
+    program.cpp \
+    profiler.cpp \
+    pendulum.cpp \
+    controller.cpp
 
 HEADERS += \
     HARDWARE/PWM/pwm.h \
@@ -49,8 +51,10 @@ HEADERS += \
     petla.h \
     odczyt_xml.h \
     tinyxml2.h \
-    wahadlo.h \
-    program.h
+    program.h \
+    profiler.h \
+    pendulum.h \
+    controller.h
 
 
 QMAKE_CXXFLAGS += -pthread

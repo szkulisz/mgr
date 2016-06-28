@@ -5,52 +5,52 @@ using namespace exploringBB;
 
 Encoder::Encoder()
 {
-    expander = new MCP23S17(2,0,1000000,SPIDevice::MODE1);
-    pin_reset = new GPIO(14);
-    pin_enable = new GPIO(49);
-    pin_select = new GPIO(115);
-    pin_reset-> setDirection(OUTPUT);
-    pin_enable-> setDirection(OUTPUT);
-    pin_select-> setDirection(OUTPUT);
-    release();
+    mExpander = new MCP23S17(2,0,1000000,SPIDevice::MODE1);
+    mPinEnable = new GPIO(49);
+    mPinReset = new GPIO(14);
+    mPinSelect = new GPIO(115);
+    mPinReset-> setDirection(OUTPUT);
+    mPinEnable-> setDirection(OUTPUT);
+    mPinSelect-> setDirection(OUTPUT);
     reset();
+    release();
 }
 
 void Encoder::reset()
 {
-    pin_reset->setValue(HIGH);
+    mPinReset->setValue(HIGH);
     usleep(10);
-    pin_reset->setValue(LOW);
+    mPinReset->setValue(LOW);
 }
 
-int Encoder::read_values(int &chart, int &pend)
+int Encoder::readValues(int &cart, int &pend)
 {
-    unsigned char chart_more, chart_less, pend_more, pend_less;
-    static int prev_chart = 0;
+    unsigned char cartMore, cartLess, pendMore, pendLess;
+    static int cartPrev = 0;
 
     release();
-    read_bytes(MORE, chart_more, pend_more);
-    read_bytes(LESS, chart_less, pend_less);
+    readBytes(MORE, cartMore, pendMore);
+    readBytes(LESS, cartLess, pendLess);
 
-    chart = chart_more;
-    chart <<= 8;
-    chart += chart_less;
+    cart = cartMore;
+    cart <<= 8;
+    cart += cartLess;
 
-    if (chart & 0x00008000) {
-        chart |= 0xFFFF8000;
+    if (cart & 0x00008000) {
+        cart |= 0xFFFF8000;
     }
-    if ((chart - prev_chart) > 300){
-        chart = chart - 514;
+    if ((cart - cartPrev) > 300){
+        cart = cart - 514;
     } else {
-        if ((chart - prev_chart) < -300)
-            chart = chart + 514;
+        if ((cart - cartPrev) < -300)
+            cart = cart + 514;
     }
 
-    prev_chart = chart;
+    cartPrev = cart;
 
-    pend = pend_more;
+    pend = pendMore;
     pend <<= 8;
-    pend += pend_less;
+    pend += pendLess;
 
     if (pend & 0x00008000) {
         pend |= 0xFFFF8000;
@@ -62,51 +62,50 @@ int Encoder::read_values(int &chart, int &pend)
 
 void Encoder::release()
 {
-    pin_enable-> setValue(LOW);
-    pin_select-> setValue(LOW);
+    mPinEnable-> setValue(LOW);
+    mPinSelect-> setValue(LOW);
 }
 
-int Encoder::read_bytes(Encoder::BYTE byte, unsigned char &chart, unsigned char &pend)
+int Encoder::readBytes(Encoder::BYTE byte, unsigned char &cart, unsigned char &pend)
 {
     unsigned char valuesert[2];
 //    memset(values, 0, sizeof(values));
 
-    pin_enable-> setValue(HIGH);
+    mPinEnable-> setValue(HIGH);
     if(byte == MORE){
-        pin_select-> setValue(HIGH);
+        mPinSelect-> setValue(HIGH);
     }else{
-        pin_select-> setValue(LOW);
+        mPinSelect-> setValue(LOW);
     }
-//    usleep(1000000);
-    int ret = this->expander->read_registers(MCP23S17::GPIOA, 2, valuesert);
+    int ret = this->mExpander->readRegisters(MCP23S17::GPIOA, 2, valuesert);
     if (ret<0){
         valuesert[0] = 0xFF;
         valuesert[1] = 0xFF;
     }
 //    release();
-    chart = valuesert[0];
+    cart = valuesert[0];
     pend = valuesert[1];
     return ret;
 
 }
 
-int Encoder::read_byte(Encoder::WHICH which, Encoder::BYTE byte, unsigned char &value)
+int Encoder::readByte(Encoder::WHICH which, Encoder::BYTE byte, unsigned char &value)
 {
     unsigned char reg;
 
 //    release();
-    pin_enable-> setValue(HIGH);
+    mPinEnable-> setValue(HIGH);
     if(byte == MORE){
-        pin_select-> setValue(HIGH);
+        mPinSelect-> setValue(HIGH);
     }else{
-        pin_select-> setValue(LOW);
+        mPinSelect-> setValue(LOW);
     }
     if (which == CHART){
         reg = MCP23S17::GPIOA;
     }else{
         reg = MCP23S17::GPIOB;
     }
-    int ret = expander->read_register(reg, value);
+    int ret = mExpander->readRegister(reg, value);
     if (ret<0){
         value = 0xFF;
     }

@@ -19,6 +19,7 @@
 #include <QCoreApplication>
 #include <QDebug>
 #include <QVector>
+#include "controller.h"
 
 class Program : public QObject
 {
@@ -36,9 +37,11 @@ signals:
 public slots:
     void on_timeout();
     void newConnection();
-    void bytesWritten(qint64 bytes);
+//    void bytesWritten(qint64 bytes);
     void readyRead();
-    void logToDatabase(QVector<int> chart, QVector<int> pend, QVector<float> CV);
+
+private:
+    Controller mPendulumController;
 };
 
 #endif // PROGRAM_H

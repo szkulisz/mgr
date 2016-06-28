@@ -1,9 +1,9 @@
 #include "program.h"
+#include <unistd.h>
 
 
 Program::Program(QObject *parent) : QObject(parent)
 {
-
     std::map<std::string, float> parametry;
     parametry["k"] = 0.0003f;
     parametry["Ti"] = 0.3857f;
@@ -16,9 +16,31 @@ Program::Program(QObject *parent) : QObject(parent)
     parametry["min"] = -0.5f;
 
     petla = new Petla( new RegulatorPID(parametry));
-    petla->wahadlo->steruj(0.f);
+    petla->wahadlo->control(0.f);
     petla->ustaw_wartosc_zadana(0.f);
 //    petla->ustaw_wartosc_zadana(new Sygnal_prost(1000, 500, 0.5, new Sygnal_0));
+
+    mPendulumController.setPeriod(1000);
+    std::cout << "start" << std::endl;
+    mPendulumController.start();
+    sleep(1);
+    std::cout << "Cart: " << mPendulumController.getCartPosition() << std::endl;
+    std::cout << "Pend: " << mPendulumController.getPendulumAngle() << std::endl;
+    sleep(1);
+    std::cout << "Cart: " << mPendulumController.getCartPosition() << std::endl;
+    std::cout << "Pend: " << mPendulumController.getPendulumAngle() << std::endl;
+    sleep(1);
+    std::cout << "Cart: " << mPendulumController.getCartPosition() << std::endl;
+    std::cout << "Pend: " << mPendulumController.getPendulumAngle() << std::endl;
+    sleep(1);
+    std::cout << "Cart: " << mPendulumController.getCartPosition() << std::endl;
+    std::cout << "Pend: " << mPendulumController.getPendulumAngle() << std::endl;
+    sleep(1);
+    std::cout << "Cart: " << mPendulumController.getCartPosition() << std::endl;
+    std::cout << "Pend: " << mPendulumController.getPendulumAngle() << std::endl;
+    mPendulumController.quit();
+    mPendulumController.wait();
+    std::cout << "koniec" << std::endl;
 
     // create a timer
     timer = new QTimer(this);
@@ -41,21 +63,6 @@ Program::Program(QObject *parent) : QObject(parent)
         //qDebug() << "Server started!";
     }
 
-//    dataBase = QSqlDatabase::addDatabase("QMYSQL");
-//    dataBase.setHostName("localhost");//192.168.1.212");
-//    dataBase.setPort(3306);
-//    dataBase.setUserName("mgr");
-//    dataBase.setPassword("mgrr");
-//    dataBase.setDatabaseName("mgr");
-//    if (!dataBase.open()) {
-//        std::cout << "Cannot connect with database..." <<std::endl;
-//        std::cout << dataBase.lastError().text().toStdString() <<std::endl;
-//    }
-//    QSqlQuery query;
-//    query.exec("truncate table ver2");
-
-    // msec
-//    timer->start(10);
 }
 
 void Program::on_timeout()
@@ -70,12 +77,12 @@ void Program::on_timeout()
 //    query.bindValue(":pend", petla->wahadlo->getS_pozycja_wahadla());
 //    query.bindValue(":CV", petla->odczytaj_sterowanie());
 //    query.exec();
-    QString message = QString("ID %1 CH %2 PE %3 CV %4").arg(counter++).arg(petla->odczytaj_wyjscie_obiektu()).arg(0).arg(petla->odczytaj_sterowanie());
+    QString message = QString("ID %1 CH %2 PE %3 CV %4").arg(counter++).arg(petla->odczytaj_wyjscie_obiektu()).arg(petla->wahadlo->getPendulumAngle()).arg(petla->odczytaj_sterowanie());
     clientConnection->write(message.toLocal8Bit());
     if ( i++ == 100) {
         std::cout << "id: " << counter-1
                 << " chart: " << petla->odczytaj_wyjscie_obiektu()
-                << " pend: " << petla->wahadlo->getS_pozycja_wahadla()
+                << " pend: " << petla->wahadlo->getPendulumAngle()
               << " ster: " << petla->odczytaj_sterowanie() << std::endl;
         i = 0;
     }
@@ -93,10 +100,10 @@ void Program::newConnection()
             this, SLOT(readyRead()));
 }
 
-void Program::bytesWritten(qint64 bytes)
-{
+//void Program::bytesWritten(qint64 bytes)
+//{
 
-}
+//}
 
 void Program::readyRead()
 {
@@ -109,7 +116,8 @@ void Program::readyRead()
     }
     if ( tokens.at(0).compare("STOP") == 0 ) {
         timer->stop();
-        petla->wahadlo->steruj(0.f);
+        petla->wahadlo->control(0.f);
+        petla->mPhase = 0;
         std::cout << tokens.at(0).toStdString() << std::endl;
     }
     if ( tokens.at(0).compare("SETPOINT") == 0 ) {
@@ -134,8 +142,4 @@ void Program::readyRead()
     }
 }
 
-void Program::logToDatabase(QVector<int> chart, QVector<int> pend, QVector<float> CV)
-{
-
-}
 

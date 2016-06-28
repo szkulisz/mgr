@@ -15,7 +15,7 @@ class AD5313
 public:
     AD5313();
 
-    AD5313(unsigned int bus, unsigned int device, unsigned int speed, SPIDevice::SPIMODE mode);
+    AD5313(unsigned int bus, unsigned int deviceNumber, unsigned int speed, SPIDevice::SPIMODE mode);
 
     /**
      * @brief write_voltage
@@ -29,12 +29,12 @@ public:
      *  -1: błąd zakresu
      *  0:  ok
      */
-    int write_voltage(float voltage, int channel);
+    int writeVoltage(float voltage, int channel);
 
 
 private:
-    SPIDevice *device;
-    unsigned char tx_buf[3] = {0,0,0};
+    SPIDevice *mDevice;
+    unsigned char mTxBuf[3] = {0,0,0};
 };
 
 #endif // AD5313_H
