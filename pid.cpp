@@ -35,6 +35,24 @@ void PID::setParameters(map<string, float> params)
     mKd = params["Kd"];
     mN = params["N"];
     mTs = params["Ts"];
+    mIsConstrained = params["constr"];
+    mCVmax = params["CVmax"];
+    mCVmin = params["CVmin"];
+}
+
+map<string, float> PID::getParameters()
+{
+    map<string, float> params;
+    params["Kp"] = mKp;
+    params["Ki"] = mKi;
+    params["Kd"] = mKd;
+    params["N"] = mN;
+    params["Ts"] = mTs;
+    params["constr"] = mIsConstrained;
+    params["CVmax"] = mCVmax;
+    params["CVmin"] = mCVmin;
+
+    return params;
 }
 
 void PID::stop()

@@ -21,6 +21,7 @@ class Controller : public QThread
     Q_OBJECT
     void run() Q_DECL_OVERRIDE;
 public:
+    Controller();
     void setPeriod(int period);
     float getCartPosition() { return mCartPosition; }
     float getPendulumAngle() { return mPendulumAngle; }

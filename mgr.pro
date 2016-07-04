@@ -21,19 +21,13 @@ SOURCES += main.cpp \
     HARDWARE/MCP23S17/mcp23s17.cpp \
     HARDWARE/GPIO/GPIO.cpp \
     HARDWARE/encoder.cpp \
-    regulatory/regulator.cpp \
-    regulatory/regulatorp.cpp \
-    regulatory/regulatorpid.cpp \
-    regulatory/dekorator_sygnalu.cpp \
-    objekt_siso.cpp \
-    petla.cpp \
-    odczyt_xml.cpp \
-    tinyxml2.cpp \
     program.cpp \
     profiler.cpp \
     pendulum.cpp \
     controller.cpp \
-    pid.cpp
+    pid.cpp \
+    TCP/mytcpserver.cpp \
+    TCP/mytcpthread.cpp
 
 HEADERS += \
     HARDWARE/PWM/pwm.h \
@@ -44,19 +38,13 @@ HEADERS += \
     HARDWARE/MCP23S17/mcp23s17.h \
     HARDWARE/GPIO/GPIO.h \
     HARDWARE/encoder.h \
-    regulatory/regulator.h \
-    regulatory/regulatorp.h \
-    regulatory/regulatorpid.h \
-    regulatory/dekorator_sygnalu.h \
-    objekt_siso.h \
-    petla.h \
-    odczyt_xml.h \
-    tinyxml2.h \
     program.h \
     profiler.h \
     pendulum.h \
     controller.h \
-    pid.h
+    pid.h \
+    TCP/mytcpserver.h \
+    TCP/mytcpthread.h
 
 
 QMAKE_CXXFLAGS += -pthread

@@ -10,8 +10,7 @@ void Controller::run()
     param.sched_priority = (sched_get_priority_max(SCHED_FIFO));
     sts = sched_setscheduler(0, SCHED_FIFO, &param);
     CHECK(sts,"sched_setscheduler");
-    std::cout << "PendulumController ma ID: " << QThread::currentThreadId() << " i priorytet: " << param.sched_priority << std::endl;
-
+    std::cout << "PendulumController has ID: " << QThread::currentThreadId() << " and priority: " << param.sched_priority << std::endl;
     while (mRunController) {
         struct timespec next;
         mProfiler.startLogging(mPeriod, 1000, false, "logs/test.txt");
@@ -38,6 +37,24 @@ void Controller::run()
         usleep(1000);
     }
     mProfiler.saveLogFile();
+}
+
+Controller::Controller()
+{
+    std::map<std::string, float> params;
+    params["Kp"] = 40.8f;
+    params["Ki"] = 29.6f;
+    params["Kd"] = 2.3f;
+    params["N"] = 10;
+    params["Ts"] = 0.001;
+    params["constr"] = 1;
+    params["CVmax"] = 2.5f;
+    params["CVmin"] = -2.5f;
+    mCartPID.setParameters(params);
+    params["Kp"] = 119.f;
+    params["Ki"] = 241.f;
+    params["Kd"] = 10.f;
+    mPendulumPID.setParameters(params);
 }
 
 void Controller::startController()

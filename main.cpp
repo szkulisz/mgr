@@ -22,7 +22,7 @@ int main(int argc, char *argv[])
     param.sched_priority = (sched_get_priority_max(SCHED_FIFO)-1);
     sts = sched_setscheduler(0, SCHED_FIFO, &param);
     CHECK(sts,"sched_setscheduler");
-    std::cout << "proces ma ID: " << QThread::currentThreadId() << " i priorytet: " << param.sched_priority << std::endl;
+    std::cout << "Process has ID: " << QThread::currentThreadId() << " and priority: " << param.sched_priority << std::endl;
 
     Program program;
 
