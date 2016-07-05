@@ -9,7 +9,7 @@ class MyTCPServer : public QTcpServer
     Q_OBJECT
 public:
     explicit MyTCPServer(QObject *parent = 0);
-    void startServer();
+    void startServer(int port);
     void send(QString);
 
 signals:

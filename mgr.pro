@@ -27,7 +27,7 @@ SOURCES += main.cpp \
     controller.cpp \
     pid.cpp \
     TCP/mytcpserver.cpp \
-    TCP/mytcpthread.cpp
+    TCP/tcpworker.cpp
 
 HEADERS += \
     HARDWARE/PWM/pwm.h \
@@ -44,7 +44,7 @@ HEADERS += \
     controller.h \
     pid.h \
     TCP/mytcpserver.h \
-    TCP/mytcpthread.h
+    TCP/tcpworker.h
 
 
 QMAKE_CXXFLAGS += -pthread

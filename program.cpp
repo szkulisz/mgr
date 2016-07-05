@@ -31,7 +31,7 @@ Program::Program(QObject *parent) : QObject(parent)
 
 
     connect(&mServer, SIGNAL(readyRead(QString)), this, SLOT(readyRead(QString)));
-    mServer.startServer();
+    mServer.startServer(5555);
 
 }
 

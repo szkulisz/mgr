@@ -1,31 +1,29 @@
-#ifndef MYTCPTHREAD_H
-#define MYTCPTHREAD_H
+#ifndef TCPWORKER_H
+#define TCPWORKER_H
 
 #include <QObject>
-#include <QThread>
 #include <QTcpSocket>
-#include <QDebug>
 
-class MyTCPThread : public QThread
+class TCPWorker : public QObject
 {
     Q_OBJECT
 public:
-    explicit MyTCPThread(qintptr ID, QObject *parent = 0);
-
-    void run();
+    explicit TCPWorker(qintptr ID, QObject *parent = 0);
 
 signals:
     void error(QTcpSocket::SocketError socketError);
     void readyRead(QString);
+    void finished();
 
 public slots:
     void write(QString message);
     void readyReadSlot();
     void disconnected();
+    void onThreadStart();
 
 private:
     QTcpSocket *mSocket;
     qintptr mSocketDescriptor;
 };
 
-#endif // MYTCPTHREAD_H
+#endif // TCPWORKER_H
