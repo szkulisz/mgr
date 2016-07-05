@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QThread>
 #include <pthread.h>
+#include <map>
 #include "profiler.h"
 #include "pendulum.h"
 #include "pid.h"
@@ -26,7 +27,12 @@ public:
     float getCartPosition() { return mCartPosition; }
     float getPendulumAngle() { return mPendulumAngle; }
     void startController();
+    std::map<std::string, float>  getCartPIDParams();
+    std::map<std::string, float>  getPendulumPIDParams();
 
+
+    int getPeriod() const;
+    int getSamplingFrequency() const;
 
 public slots:
     void stopController();
@@ -39,8 +45,8 @@ private:
     bool mRunController = true;
     bool mRunPendulum = true;
     int mSwingPeriod = 10000;
-    int mNextPeriod;
-    int mPeriod;
+    int mControlPeriod = 1000;
+    int mPeriod = 1000;
     int mPhase = Phase::NOTHING;
     float mPendulumAngle = 0;
     float mCartPosition = 0;

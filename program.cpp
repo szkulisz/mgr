@@ -31,6 +31,7 @@ Program::Program(QObject *parent) : QObject(parent)
 
 
     connect(&mServer, SIGNAL(readyRead(QString)), this, SLOT(readyRead(QString)));
+    connect(&mServer, SIGNAL(newConnection(qintptr)), this, SLOT(onNewConnection(qintptr)));
     mServer.startServer(5555);
 
 }
@@ -83,6 +84,19 @@ void Program::readyRead(QString message)
         parametry["max"] = 0.5f;
         parametry["min"] = -0.5f;
     }
+}
+
+void Program::onNewConnection(qintptr clientAdress)
+{
+    QString message = QString("%1 CONNECTED CONTROL %2").arg(clientAdress).arg(mUnderControl);
+    mServer.write(message);
+    std::map<std::string, float> cartParams = mPendulumController.getCartPIDParams();
+    std::map<std::string, float> pendulumParams = mPendulumController.getPendulumPIDParams();
+    message = QString("%1 PARAMS %2 %3 %4 %5 %6 %7 %8 %9 %10").arg(clientAdress).
+            arg(cartParams["Kp"]).arg(cartParams["Ki"]).arg(cartParams["Kd"]).arg(cartParams["N"]).
+            arg(pendulumParams["Kp"]).arg(pendulumParams["Ki"]).arg(pendulumParams["Kd"]).arg(pendulumParams["N"]).
+            arg(mPendulumController.getSamplingFrequency());
+    mServer.write(message);
 }
 
 

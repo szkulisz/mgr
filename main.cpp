@@ -13,7 +13,7 @@
 int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
-    system("/home/szymon/mgr/init.sh");
+//    system("/home/szymon/mgr/init.sh");
 
     int sts;
     struct sched_param param;

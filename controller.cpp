@@ -1,5 +1,6 @@
 #include "controller.h"
 #include <iostream>
+#include <cmath>
 
 void Controller::run()
 {
@@ -59,10 +60,19 @@ Controller::Controller()
 
 void Controller::startController()
 {
-    mNextPeriod = mPeriod;
     mPhase = Phase::SWING_UP;
     mPeriod = mSwingPeriod;
     mRunPendulum = true;
+}
+
+std::map<string, float> Controller::getCartPIDParams()
+{
+    return mCartPID.getParameters();
+}
+
+std::map<string, float> Controller::getPendulumPIDParams()
+{
+    return mPendulumPID.getParameters();
 }
 
 void Controller::stopController()
@@ -81,6 +91,16 @@ void Controller::quit()
     finish();
 }
 
+int Controller::getPeriod() const
+{
+    return mControlPeriod;
+}
+
+int Controller::getSamplingFrequency() const
+{
+    return std::round(1 / (mControlPeriod/1000000.f));
+}
+
 void Controller::swingUp()
 {
     static float anglePrev;
@@ -96,21 +116,20 @@ void Controller::swingUp()
     if (mPendulum.getCartPosition() > 0) {
         if ((mPendulumAngle < M_PI/8) || (mPendulumAngle > (2*M_PI - 0.02))) {
             mPhase=Phase::CONTROL;
-            setPeriod(mNextPeriod);
+            setPeriod(mControlPeriod);
         }
     } else {
         if ((mPendulumAngle > (2*M_PI - M_PI/8)) || (mPendulumAngle < (0 + 0.02))){
             mPhase=Phase::CONTROL;
-            setPeriod(mNextPeriod);
+            setPeriod(mControlPeriod);
         }
     }
 }
 
 void Controller::setPeriod(int period)
 {
-    if ((mPhase == Phase::SWING_UP) || (mPhase == Phase::SWING_DOWN)) {
-        mNextPeriod = period;
-    } else {
+    mControlPeriod = period;
+    if (!(mPhase == Phase::SWING_UP) && !(mPhase == Phase::SWING_DOWN)) {
         mPeriod = period;
         mProfiler.changePeriod(period);
     }

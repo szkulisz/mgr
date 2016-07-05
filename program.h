@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QTimer>
+#include <QAtomicInt>
 #include <iostream>
 #include "HARDWARE/AD5313_DAC/ad5313.h"
 #include "HARDWARE/MCP23S17/mcp23s17.h"
@@ -27,9 +28,11 @@ signals:
 public slots:
     void on_timeout();
     void readyRead(QString message);
+    void onNewConnection(qintptr clientAdress);
 
 private:
     Controller mPendulumController;
+    QAtomicInt mUnderControl = 0;
 };
 
 #endif // PROGRAM_H

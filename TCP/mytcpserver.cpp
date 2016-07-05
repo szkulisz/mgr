@@ -41,4 +41,6 @@ void MyTCPServer::incomingConnection(qintptr socketDescriptor)
     connect(this,SIGNAL(write(QString)), worker, SLOT(write(QString)));
 
     thread->start();
+
+    emit newConnection(socketDescriptor);
 }

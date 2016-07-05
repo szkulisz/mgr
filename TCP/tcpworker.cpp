@@ -2,6 +2,7 @@
 #include <pthread.h>
 #include <QThread>
 #include <iostream>
+#include <unistd.h>
 
 #define CHECK(sts,msg)  \
     if (sts == -1) {      \
@@ -21,6 +22,9 @@ void TCPWorker::write(QString message)
 {
 //    std::cout << "TCPWorker writes in: " << QThread::currentThreadId() << std::endl;
     mSocket->write(message.toLocal8Bit());
+    while(mSocket->bytesToWrite())
+        mSocket->flush();
+
 }
 
 void TCPWorker::readyReadSlot()

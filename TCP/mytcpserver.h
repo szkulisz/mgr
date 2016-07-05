@@ -15,6 +15,7 @@ public:
 signals:
     void readyRead(QString);
     void write(QString);
+    void newConnection(qintptr);
 
 public slots:
     void readyReadSlot(QString message);
