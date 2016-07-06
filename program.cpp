@@ -1,5 +1,5 @@
 #include "program.h"
-#include <unistd.h>
+#include <cmath>
 
 
 Program::Program(QObject *parent) : QObject(parent)
@@ -57,7 +57,7 @@ void Program::readyRead(QString message)
 {
     std::cout << message.toStdString() << std::endl;
     QStringList tokens = message.split(" ",QString::SkipEmptyParts);
-
+    QString response;
     if ( tokens.at(2).compare("CONTROL") == 0 ) {
         if (tokens.at(3).toInt() == ControlEnum::Take) {
             if (mUnderControl.testAndSetRelaxed(0, 1)) {
@@ -70,15 +70,48 @@ void Program::readyRead(QString message)
                 mControllerTimer.start(1000);
                 onControllerTimerTimeout();
             } else {
-                message = QString("ADDR %1 CONTROL %2 ").arg(mControllerAdress).arg(ControlEnum::TakeFail);
-                mServer.write(message);
+                response = QString("ADDR %1 CONTROL %2 ").arg(mControllerAdress).arg(ControlEnum::TakeFail);
+                mServer.write(response);
             }
         } else if (tokens.at(3).toInt() == ControlEnum::GiveUp) {
             mUnderControl = 0;
-            message = QString("ADDR %1 CONTROL %2 ").arg(BROADCAST_ADRESS).arg(ControlEnum::Free);
-            mServer.write(message);
+            response = QString("ADDR %1 CONTROL %2 ").arg(BROADCAST_ADRESS).arg(ControlEnum::Free);
+            mServer.write(response);
+        } else if (tokens.at(3).toInt() == ControlEnum::Prolong) {
+            prolongControllerTime();
         }
 
+    } else if ( tokens.at(2).compare("PARAMS") == 0 ) {
+        std::map<std::string, float> params;
+        params["Kp"] = tokens.at(3).toFloat();
+        params["Ki"] = tokens.at(4).toFloat();
+        params["Kd"] = tokens.at(5).toFloat();
+        params["N"] = tokens.at(6).toInt();
+        int tempHz = tokens.at(11).toInt();
+        params["Ts"] = std::round( (1.f/tempHz) * 1000000 );
+        mPendulumController.setCartPIDParams(params);
+        params["Kp"] = tokens.at(7).toFloat();
+        params["Ki"] = tokens.at(8).toFloat();
+        params["Kd"] = tokens.at(9).toFloat();
+        params["N"] = tokens.at(10).toInt();
+        params["Ts"] = std::round( (1.f/tempHz) * 1000000 );
+        mPendulumController.setPendulumPIDParams(params);
+        std::map<std::string, float> cartParams = mPendulumController.getCartPIDParams();
+        std::map<std::string, float> pendulumParams = mPendulumController.getPendulumPIDParams();
+        mPendulumController.setSamplingFrequency(tokens.at(11).toInt());
+
+        response = QString("ADDR %1 PARAMS %2 %3 %4 %5 %6 %7 %8 %9 %10 ").arg(BROADCAST_ADRESS).
+                arg(cartParams["Kp"]).arg(cartParams["Ki"]).arg(cartParams["Kd"]).arg(cartParams["N"]).
+                arg(pendulumParams["Kp"]).arg(pendulumParams["Ki"]).arg(pendulumParams["Kd"]).arg(pendulumParams["N"]).
+                arg(mPendulumController.getSamplingFrequency());
+        mServer.write(response);
+    } else if ( tokens.at(2).compare("SETPOINT") == 0 ) {
+        mPendulumController.setCartSetpoint(tokens.at(3).toInt()/100.f);
+        response = QString("ADDR %1 SETPOINT %2 ").arg(BROADCAST_ADRESS).arg(mPendulumController.getCartSetpoint());
+        mServer.write(response);
+    }
+    if (message.count("ADDR") > 1) {
+        readyRead(message.mid(message.indexOf("ADDR", 5)));
     }
 }
 

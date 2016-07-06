@@ -23,16 +23,21 @@ class Controller : public QThread
     void run() Q_DECL_OVERRIDE;
 public:
     Controller();
-    void setPeriod(int period);
     float getCartPosition() { return mCartPosition; }
     float getPendulumAngle() { return mPendulumAngle; }
     void startController();
     std::map<std::string, float>  getCartPIDParams();
     std::map<std::string, float>  getPendulumPIDParams();
+    void setPendulumPIDParams(std::map<string, float> params);
+    void setCartPIDParams(std::map<string, float> params);
 
-
+    void setPeriod(int period);
     int getPeriod() const;
     int getSamplingFrequency() const;
+    void setSamplingFrequency(int freq);
+    void setCartSetpoint(float cartSetpoint);
+
+    float getCartSetpoint() const;
 
 public slots:
     void stopController();
@@ -50,6 +55,7 @@ private:
     int mPhase = Phase::NOTHING;
     float mPendulumAngle = 0;
     float mCartPosition = 0;
+    float mCartSetpoint = 0;
     Profiler mProfiler;
     Pendulum mPendulum;
     PID mCartPID;

@@ -34,10 +34,18 @@ void PID::setParameters(map<string, float> params)
     mKi = params["Ki"];
     mKd = params["Kd"];
     mN = params["N"];
-    mTs = params["Ts"];
-    mIsConstrained = params["constr"];
-    mCVmax = params["CVmax"];
-    mCVmin = params["CVmin"];
+    map<string, float>::iterator it = params.find("Ts");
+    if (it != params.end())
+        mTs = params["Ts"];
+    it = params.find("constr");
+    if (it != params.end())
+        mIsConstrained = params["constr"];
+    it = params.find("CVmax");
+    if (it != params.end())
+        mCVmax = params["CVmax"];
+    it = params.find("CVmin");
+    if (it != params.end())
+        mCVmin = params["CVmin"];
 }
 
 map<string, float> PID::getParameters()
@@ -61,5 +69,15 @@ void PID::stop()
     mDPrev = 0;
     mPVPrev = 0;
     mParamsChanged = true;
+}
+
+float PID::getSamplingTime() const
+{
+    return mTs;
+}
+
+void PID::setSamplingTime(float ts)
+{
+    mTs = ts;
 }
 

@@ -75,6 +75,16 @@ std::map<string, float> Controller::getPendulumPIDParams()
     return mPendulumPID.getParameters();
 }
 
+void Controller::setCartPIDParams(std::map<string, float> params)
+{
+    mCartPID.setParameters(params);
+}
+
+void Controller::setPendulumPIDParams(std::map<string, float> params)
+{
+    mPendulumPID.setParameters(params);
+}
+
 void Controller::stopController()
 {
     mRunPendulum = false;
@@ -91,6 +101,16 @@ void Controller::quit()
     finish();
 }
 
+float Controller::getCartSetpoint() const
+{
+    return mCartSetpoint;
+}
+
+void Controller::setCartSetpoint(float cartSetpoint)
+{
+    mCartSetpoint = cartSetpoint;
+}
+
 int Controller::getPeriod() const
 {
     return mControlPeriod;
@@ -99,6 +119,11 @@ int Controller::getPeriod() const
 int Controller::getSamplingFrequency() const
 {
     return std::round(1 / (mControlPeriod/1000000.f));
+}
+
+void Controller::setSamplingFrequency(int freq)
+{
+    setPeriod( std::round( (1.f/freq) * 1000000 ));
 }
 
 void Controller::swingUp()
@@ -129,6 +154,8 @@ void Controller::swingUp()
 void Controller::setPeriod(int period)
 {
     mControlPeriod = period;
+//    mCartPID.setSamplingTime(period);
+//    mPendulumPID.setSamplingTime(period);
     if (!(mPhase == Phase::SWING_UP) && !(mPhase == Phase::SWING_DOWN)) {
         mPeriod = period;
         mProfiler.changePeriod(period);

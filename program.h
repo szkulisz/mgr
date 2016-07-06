@@ -50,7 +50,6 @@ private:
     int mControllerTime;
 
     void prolongControllerTime();
-
 };
 
 #endif // PROGRAM_H

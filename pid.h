@@ -16,6 +16,9 @@ public:
     map<string, float> getParameters();
     void stop();
 
+    float getSamplingTime() const;
+    void setSamplingTime(float ts);
+
 private:
     float mKp = 1;
     float mKd = 0;
