@@ -15,6 +15,16 @@
 #include "controller.h"
 #include "TCP/mytcpserver.h"
 
+enum ControlEnum {
+    Taken,
+    Free,
+    Take,
+    TakeSuccess,
+    TakeFail,
+    GiveUp,
+    Prolong
+};
+
 class Program : public QObject
 {
     Q_OBJECT
@@ -29,10 +39,18 @@ public slots:
     void on_timeout();
     void readyRead(QString message);
     void onNewConnection(qintptr clientAdress);
+    void onControllerTimerTimeout();
 
 private:
     Controller mPendulumController;
     QAtomicInt mUnderControl = 0;
+    int mControllerAdress;
+    const int BROADCAST_ADRESS = -10;
+    QTimer mControllerTimer;
+    int mControllerTime;
+
+    void prolongControllerTime();
+
 };
 
 #endif // PROGRAM_H

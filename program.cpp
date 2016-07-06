@@ -8,18 +8,18 @@ Program::Program(QObject *parent) : QObject(parent)
 
 
 
-    mPendulumController.setPeriod(1000);
-    std::cout << "start" << std::endl;
-    mPendulumController.start();
-    mPendulumController.startController();
-    for (int i=0; i<1; ++i){
-        std::cout << "Cart: " << mPendulumController.getCartPosition() << std::endl;
-        std::cout << "Pend: " << mPendulumController.getPendulumAngle() << std::endl;
-        sleep(1);
-    }
+//    mPendulumController.setPeriod(1000);
+//    std::cout << "start" << std::endl;
+//    mPendulumController.start();
+//    mPendulumController.startController();
+//    for (int i=0; i<1; ++i){
+//        std::cout << "Cart: " << mPendulumController.getCartPosition() << std::endl;
+//        std::cout << "Pend: " << mPendulumController.getPendulumAngle() << std::endl;
+//        sleep(1);
+//    }
 //    mPendulumController.quit();
 //    mPendulumController.wait();
-    std::cout << "koniec" << std::endl;
+//    std::cout << "koniec" << std::endl;
 
 
     // create a timer
@@ -29,6 +29,7 @@ Program::Program(QObject *parent) : QObject(parent)
     connect(timer, SIGNAL(timeout()),
           this, SLOT(on_timeout()));
 
+    connect(&mControllerTimer, SIGNAL(timeout()), this, SLOT(onControllerTimerTimeout()));
 
     connect(&mServer, SIGNAL(readyRead(QString)), this, SLOT(readyRead(QString)));
     connect(&mServer, SIGNAL(newConnection(qintptr)), this, SLOT(onNewConnection(qintptr)));
@@ -54,49 +55,65 @@ void Program::on_timeout()
 
 void Program::readyRead(QString message)
 {
-//    QString message;// = clientConnection->readAll();
     std::cout << message.toStdString() << std::endl;
     QStringList tokens = message.split(" ",QString::SkipEmptyParts);
 
-    if ( tokens.at(0).compare("START") == 0 ) {
-        std::cout << tokens.at(0).toStdString() << std::endl;
-        timer->start(10);
-    }
-    if ( tokens.at(0).compare("STOP") == 0 ) {
-        timer->stop();
-        std::cout << tokens.at(0).toStdString() << std::endl;
-    }
-    if ( tokens.at(0).compare("SETPOINT") == 0 ) {
-        int SP = tokens.at(1).toInt();
-    }
-    if ( tokens.at(0).compare("PARAMS") == 0 ) {
-        std::map<std::string, float> parametry;
-        float K = tokens.at(2).toFloat();
-        float Ti = tokens.at(4).toFloat();
-        float Td = tokens.at(6).toFloat();
-        parametry["k"] = K;
-        parametry["Ti"] = Ti;
-        parametry["Td"] = Td;
-        parametry["Tp"] = 0.01f;
-        parametry["b"] = 1;
-        parametry["N"] = 1;
-        parametry["ogr"] = 1;
-        parametry["max"] = 0.5f;
-        parametry["min"] = -0.5f;
+    if ( tokens.at(2).compare("CONTROL") == 0 ) {
+        if (tokens.at(3).toInt() == ControlEnum::Take) {
+            if (mUnderControl.testAndSetRelaxed(0, 1)) {
+                mControllerAdress = tokens.at(1).toInt();
+                message = QString("ADDR %1 CONTROL %2 ").arg(mControllerAdress).arg(ControlEnum::TakeSuccess);
+                mServer.write(message);
+                message = QString("ADDR %1 CONTROL %2 ").arg(BROADCAST_ADRESS).arg(ControlEnum::Taken);
+                mServer.write(message);
+                mControllerTime = 60;
+                mControllerTimer.start(1000);
+                onControllerTimerTimeout();
+            } else {
+                message = QString("ADDR %1 CONTROL %2 ").arg(mControllerAdress).arg(ControlEnum::TakeFail);
+                mServer.write(message);
+            }
+        } else if (tokens.at(3).toInt() == ControlEnum::GiveUp) {
+            mUnderControl = 0;
+            message = QString("ADDR %1 CONTROL %2 ").arg(BROADCAST_ADRESS).arg(ControlEnum::Free);
+            mServer.write(message);
+        }
+
     }
 }
 
 void Program::onNewConnection(qintptr clientAdress)
 {
-    QString message = QString("%1 CONNECTED CONTROL %2").arg(clientAdress).arg(mUnderControl);
+    QString message = QString("ADDR %1 CONNECTED CONTROL %2 ").arg(clientAdress).arg(mUnderControl);
+    std::cout << message.toStdString() << std::endl;
     mServer.write(message);
     std::map<std::string, float> cartParams = mPendulumController.getCartPIDParams();
     std::map<std::string, float> pendulumParams = mPendulumController.getPendulumPIDParams();
-    message = QString("%1 PARAMS %2 %3 %4 %5 %6 %7 %8 %9 %10").arg(clientAdress).
+    message = QString("ADDR %1 PARAMS %2 %3 %4 %5 %6 %7 %8 %9 %10 ").arg(clientAdress).
             arg(cartParams["Kp"]).arg(cartParams["Ki"]).arg(cartParams["Kd"]).arg(cartParams["N"]).
             arg(pendulumParams["Kp"]).arg(pendulumParams["Ki"]).arg(pendulumParams["Kd"]).arg(pendulumParams["N"]).
             arg(mPendulumController.getSamplingFrequency());
     mServer.write(message);
+}
+
+void Program::onControllerTimerTimeout()
+{
+    if (mControllerTime) {
+        mControllerTime--;
+    } else {
+        mControllerTimer.stop();
+        mUnderControl = 0;
+        QString message = QString("ADDR %1 CONTROL %2 ").arg(BROADCAST_ADRESS).arg(ControlEnum::Free);
+        mServer.write(message);
+    }
+}
+
+void Program::prolongControllerTime()
+{
+    mControllerTime = 60;
+    onControllerTimerTimeout();
+    mControllerTimer.stop();
+    mControllerTimer.start(1000);
 }
 
 
