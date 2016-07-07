@@ -14,16 +14,21 @@ void Controller::run()
     std::cout << "PendulumController has ID: " << QThread::currentThreadId() << " and priority: " << param.sched_priority << std::endl;
     while (mRunController) {
         struct timespec next;
-        mProfiler.startLogging(mPeriod, 1000, false, "logs/test.txt");
-        clock_gettime(CLOCK_MONOTONIC, &next);
-        mProfiler.startProfiling();
+        if (mRunPendulum && mRunPendulumInit) {
+//          mProfiler.startLogging(mPeriod, 1000, false, "logs/test.txt");
+            clock_gettime(CLOCK_MONOTONIC, &next);
+//          mProfiler.startProfiling();
+            mRunPendulumInit = false;
+//            mPendulum.resetEncoders();
+        }
         while (mRunPendulum) {
             timespecAddUs(&next, mPeriod);
             clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &next, NULL);
-            mProfiler.updatePeriodProfiling();
-    //        emit timeout();
+//            mProfiler.updatePeriodProfiling();
             mPendulum.readEncoderValues();
+//            mPositionsMutex.lock();
             mPendulum.getPositions(mCartPosition, mPendulumAngle);
+//            mPositionsMutex.unlock();
             switch (mPhase) {
             case Phase::SWING_UP:
                 swingUp();
@@ -33,7 +38,7 @@ void Controller::run()
                 break;
             }
 
-            mProfiler.updateHandlerTimeProfiling();
+//            mProfiler.updateHandlerTimeProfiling();
         }
         usleep(1000);
     }
@@ -58,10 +63,29 @@ Controller::Controller()
     mPendulumPID.setParameters(params);
 }
 
-void Controller::startController()
+float Controller::getCartPosition()
+{
+    float temp;
+//    mPositionsMutex.lock();
+    temp = mCartPosition;
+//    mPositionsMutex.unlock();
+    return temp;
+}
+
+float Controller::getPendulumAngle()
+{
+    float temp;
+//    mPositionsMutex.lock();
+    temp = mPendulumAngle;
+//    mPositionsMutex.unlock();
+    return temp;
+}
+
+void Controller::startControlling()
 {
     mPhase = Phase::SWING_UP;
     mPeriod = mSwingPeriod;
+    mRunPendulumInit = true;
     mRunPendulum = true;
 }
 
@@ -85,7 +109,7 @@ void Controller::setPendulumPIDParams(std::map<string, float> params)
     mPendulumPID.setParameters(params);
 }
 
-void Controller::stopController()
+void Controller::stopControlling()
 {
     mRunPendulum = false;
 }
@@ -97,8 +121,17 @@ void Controller::finish()
 
 void Controller::quit()
 {
-    stopController();
+    stopControlling();
     finish();
+}
+
+float Controller::getControlValue()
+{
+    float temp;
+    mControlMutex.lock();
+    temp =  mControlValue;
+    mControlMutex.unlock();
+    return temp;
 }
 
 float Controller::getCartSetpoint() const

@@ -1,5 +1,6 @@
 #include "program.h"
 #include <cmath>
+#include <unistd.h>
 
 
 Program::Program(QObject *parent) : QObject(parent)
@@ -8,26 +9,24 @@ Program::Program(QObject *parent) : QObject(parent)
 
 
 
-//    mPendulumController.setPeriod(1000);
-//    std::cout << "start" << std::endl;
-//    mPendulumController.start();
-//    mPendulumController.startController();
-//    for (int i=0; i<1; ++i){
-//        std::cout << "Cart: " << mPendulumController.getCartPosition() << std::endl;
-//        std::cout << "Pend: " << mPendulumController.getPendulumAngle() << std::endl;
-//        sleep(1);
-//    }
-//    mPendulumController.quit();
-//    mPendulumController.wait();
-//    std::cout << "koniec" << std::endl;
+    mPendulumController.setPeriod(1000);
+    std::cout << "start" << std::endl;
+    mPendulumController.start();
+    mPendulumController.startControlling();
+    for (int i=0; i<3; ++i){
+        std::cout << "Cart: " << mPendulumController.getCartPosition() << std::endl;
+        std::cout << "Pend: " << mPendulumController.getPendulumAngle() << std::endl;
+        sleep(1);
+    }
+    mPendulumController.quit();
+    mPendulumController.wait();
+    std::cout << "koniec" << std::endl;
 
 
     // create a timer
-    timer = new QTimer(this);
 
     // setup signal and slot
-    connect(timer, SIGNAL(timeout()),
-          this, SLOT(on_timeout()));
+    connect(&mGuiRefreshTimer, SIGNAL(timeout()),this, SLOT(on_timeout()));
 
     connect(&mControllerTimer, SIGNAL(timeout()), this, SLOT(onControllerTimerTimeout()));
 
@@ -41,7 +40,11 @@ void Program::on_timeout()
 {
     static int i = 0;
     static int counter = 0;
-//    QString message = QString("ID %1 CH %2 PE %3 CV %4").arg(counter++).arg(petla->odczytaj_wyjscie_obiektu()).arg(petla->wahadlo->getPendulumAngle()).arg(petla->odczytaj_sterowanie());
+    QString message = QString("ADDR %1 STATUS %2 %3 %4 %5").arg(BROADCAST_ADRESS).
+            arg("0").arg(mPendulumController.getCartPosition()).arg(mPendulumController.getPendulumAngle()).
+            arg(mPendulumController.getControlValue());
+    mServer.write(message);
+    std::cout << message.toStdString() << std::endl;
 //    clientConnection->write(message.toLocal8Bit());
 //    if ( i++ == 100) {
 //        std::cout << "id: " << counter-1
@@ -105,11 +108,27 @@ void Program::readyRead(QString message)
                 arg(pendulumParams["Kp"]).arg(pendulumParams["Ki"]).arg(pendulumParams["Kd"]).arg(pendulumParams["N"]).
                 arg(mPendulumController.getSamplingFrequency());
         mServer.write(response);
+
     } else if ( tokens.at(2).compare("SETPOINT") == 0 ) {
         mPendulumController.setCartSetpoint(tokens.at(3).toInt()/100.f);
         response = QString("ADDR %1 SETPOINT %2 ").arg(BROADCAST_ADRESS).arg(mPendulumController.getCartSetpoint());
         mServer.write(response);
+
+    } else if ( tokens.at(2).compare("START") == 0 ) {
+        mPendulumController.startControlling();
+        mGuiRefreshTimer.start(1000);
+        response = QString("ADDR %1 STARTED ").arg(BROADCAST_ADRESS);
+        mServer.write(response);
+
+    } else if ( tokens.at(2).compare("STOP") == 0 ) {
+        mPendulumController.stopControlling();
+        mGuiRefreshTimer.stop();
+        response = QString("ADDR %1 STOPPED ").arg(BROADCAST_ADRESS);
+        mServer.write(response);
+
     }
+
+
     if (message.count("ADDR") > 1) {
         readyRead(message.mid(message.indexOf("ADDR", 5)));
     }

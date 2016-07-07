@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QThread>
 #include <pthread.h>
+#include <QMutex>
 #include <map>
 #include "profiler.h"
 #include "pendulum.h"
@@ -23,9 +24,9 @@ class Controller : public QThread
     void run() Q_DECL_OVERRIDE;
 public:
     Controller();
-    float getCartPosition() { return mCartPosition; }
-    float getPendulumAngle() { return mPendulumAngle; }
-    void startController();
+    float getCartPosition();
+    float getPendulumAngle();
+    void startControlling();
     std::map<std::string, float>  getCartPIDParams();
     std::map<std::string, float>  getPendulumPIDParams();
     void setPendulumPIDParams(std::map<string, float> params);
@@ -39,8 +40,10 @@ public:
 
     float getCartSetpoint() const;
 
+    float getControlValue();
+
 public slots:
-    void stopController();
+    void stopControlling();
     void finish();
     void quit();
 
@@ -48,14 +51,18 @@ signals:
 
 private:
     bool mRunController = true;
-    bool mRunPendulum = true;
+    bool mRunPendulum = false;
+    bool mRunPendulumInit = false;
     int mSwingPeriod = 10000;
     int mControlPeriod = 1000;
     int mPeriod = 1000;
     int mPhase = Phase::NOTHING;
     float mPendulumAngle = 0;
     float mCartPosition = 0;
+    QMutex mPositionsMutex;
+    QMutex mControlMutex;
     float mCartSetpoint = 0;
+    float mControlValue = 0;
     Profiler mProfiler;
     Pendulum mPendulum;
     PID mCartPID;

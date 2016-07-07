@@ -30,8 +30,7 @@ class Program : public QObject
     Q_OBJECT
 public:
     explicit Program(QObject *parent = 0);
-    QTimer *timer;
-    MyTCPServer mServer;
+
 
 signals:
 
@@ -44,10 +43,12 @@ public slots:
 private:
     Controller mPendulumController;
     QAtomicInt mUnderControl = 0;
+    MyTCPServer mServer;
     int mControllerAdress;
     const int BROADCAST_ADRESS = -10;
     QTimer mControllerTimer;
     int mControllerTime;
+    QTimer mGuiRefreshTimer;
 
     void prolongControllerTime();
 };

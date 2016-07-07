@@ -14,6 +14,7 @@ public:
     float getPendulumAngle() const;
     float getCartPosition() const;
     void readEncoderValues();
+    void resetEncoders();
 
 private:
     Encoder *mEncoder;

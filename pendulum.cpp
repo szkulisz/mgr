@@ -32,6 +32,11 @@ void Pendulum::readEncoderValues()
     mCartPosition = mCartEncoder/12844.f;
 }
 
+void Pendulum::resetEncoders()
+{
+    mEncoder->reset();
+}
+
 float Pendulum::getCartPosition() const
 {
     return mCartPosition;
