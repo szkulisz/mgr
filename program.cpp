@@ -9,18 +9,18 @@ Program::Program(QObject *parent) : QObject(parent)
 
 
 
-    mPendulumController.setPeriod(1000);
-    std::cout << "start" << std::endl;
+//    mPendulumController.setPeriod(1000);
+//    std::cout << "start" << std::endl;
     mPendulumController.start();
-    mPendulumController.startControlling();
-    for (int i=0; i<3; ++i){
-        std::cout << "Cart: " << mPendulumController.getCartPosition() << std::endl;
-        std::cout << "Pend: " << mPendulumController.getPendulumAngle() << std::endl;
-        sleep(1);
-    }
-    mPendulumController.quit();
-    mPendulumController.wait();
-    std::cout << "koniec" << std::endl;
+//    mPendulumController.startControlling();
+//    for (int i=0; i<3; ++i){
+//        std::cout << "Cart: " << mPendulumController.getCartPosition() << std::endl;
+//        std::cout << "Pend: " << mPendulumController.getPendulumAngle() << std::endl;
+//        sleep(1);
+//    }
+//    mPendulumController.quit();
+//    mPendulumController.wait();
+//    std::cout << "koniec" << std::endl;
 
 
     // create a timer
@@ -36,6 +36,15 @@ Program::Program(QObject *parent) : QObject(parent)
 
 }
 
+Program::~Program()
+{
+   if (mPendulumController.isRunning())  {
+       mPendulumController.quit();
+       mPendulumController.wait();
+   }
+
+}
+
 void Program::on_timeout()
 {
     static int i = 0;
@@ -45,14 +54,6 @@ void Program::on_timeout()
             arg(mPendulumController.getControlValue());
     mServer.write(message);
     std::cout << message.toStdString() << std::endl;
-//    clientConnection->write(message.toLocal8Bit());
-//    if ( i++ == 100) {
-//        std::cout << "id: " << counter-1
-//                << " chart: " << petla->odczytaj_wyjscie_obiektu()
-//                << " pend: " << petla->wahadlo->getPendulumAngle()
-//              << " ster: " << petla->odczytaj_sterowanie() << std::endl;
-//        i = 0;
-//    }
 }
 
 
@@ -116,7 +117,7 @@ void Program::readyRead(QString message)
 
     } else if ( tokens.at(2).compare("START") == 0 ) {
         mPendulumController.startControlling();
-        mGuiRefreshTimer.start(1000);
+        mGuiRefreshTimer.start(100);
         response = QString("ADDR %1 STARTED ").arg(BROADCAST_ADRESS);
         mServer.write(response);
 
@@ -126,6 +127,15 @@ void Program::readyRead(QString message)
         response = QString("ADDR %1 STOPPED ").arg(BROADCAST_ADRESS);
         mServer.write(response);
 
+    } else if ( tokens.at(2).compare("DUPA") == 0 ) {
+        mPendulumController.mPhase = Phase::CONTROL;
+        mPendulumController.setPeriod(mPendulumController.mControlPeriod);
+        if (mPendulumController.mPendulumAngle < M_PI) {
+            mPendulumController.mPendulumSetpoint = 0;
+        } else {
+            mPendulumController.mPendulumSetpoint = 2*M_PI;
+        }
+        std::cout << "SETPOINT " << mPendulumController.mPendulumSetpoint << std::endl;
     }
 
 
@@ -137,7 +147,6 @@ void Program::readyRead(QString message)
 void Program::onNewConnection(qintptr clientAdress)
 {
     QString message = QString("ADDR %1 CONNECTED CONTROL %2 ").arg(clientAdress).arg(mUnderControl);
-    std::cout << message.toStdString() << std::endl;
     mServer.write(message);
     std::map<std::string, float> cartParams = mPendulumController.getCartPIDParams();
     std::map<std::string, float> pendulumParams = mPendulumController.getPendulumPIDParams();

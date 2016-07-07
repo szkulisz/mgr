@@ -49,7 +49,8 @@ public slots:
 
 signals:
 
-private:
+//private:
+public:
     bool mRunController = true;
     bool mRunPendulum = false;
     bool mRunPendulumInit = false;
@@ -62,6 +63,7 @@ private:
     QMutex mPositionsMutex;
     QMutex mControlMutex;
     float mCartSetpoint = 0;
+    float mPendulumSetpoint = 0;
     float mControlValue = 0;
     Profiler mProfiler;
     Pendulum mPendulum;
@@ -69,6 +71,7 @@ private:
     PID mPendulumPID;
 
     void swingUp();
+    void control();
     void timespecAddUs(struct timespec *t, long us);
 };
 

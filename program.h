@@ -30,6 +30,7 @@ class Program : public QObject
     Q_OBJECT
 public:
     explicit Program(QObject *parent = 0);
+    ~Program();
 
 
 signals:

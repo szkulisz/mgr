@@ -1,6 +1,7 @@
 #include "controller.h"
 #include <iostream>
 #include <cmath>
+#include <QCoreApplication>
 
 void Controller::run()
 {
@@ -30,9 +31,14 @@ void Controller::run()
             mPendulum.getPositions(mCartPosition, mPendulumAngle);
 //            mPositionsMutex.unlock();
             switch (mPhase) {
-            case Phase::SWING_UP:
-                swingUp();
+            case
+            Phase::SWING_UP:
+//                swingUp();
                 break;
+            case Phase::CONTROL:
+                control();
+                break;
+            case Phase::SWING_DOWN:
             default:
                 mPendulum.control(0);
                 break;
@@ -40,8 +46,10 @@ void Controller::run()
 
 //            mProfiler.updateHandlerTimeProfiling();
         }
+        mPendulum.control(0);
         usleep(1000);
     }
+    mPendulum.control(0);
     mProfiler.saveLogFile();
 }
 
@@ -101,12 +109,16 @@ std::map<string, float> Controller::getPendulumPIDParams()
 
 void Controller::setCartPIDParams(std::map<string, float> params)
 {
+    mControlMutex.lock();
     mCartPID.setParameters(params);
+    mControlMutex.unlock();
 }
 
 void Controller::setPendulumPIDParams(std::map<string, float> params)
 {
+    mControlMutex.lock();
     mPendulumPID.setParameters(params);
+    mControlMutex.unlock();
 }
 
 void Controller::stopControlling()
@@ -141,7 +153,9 @@ float Controller::getCartSetpoint() const
 
 void Controller::setCartSetpoint(float cartSetpoint)
 {
+    mControlMutex.lock();
     mCartSetpoint = cartSetpoint;
+    mControlMutex.unlock();
 }
 
 int Controller::getPeriod() const
@@ -175,17 +189,52 @@ void Controller::swingUp()
         if ((mPendulumAngle < M_PI/8) || (mPendulumAngle > (2*M_PI - 0.02))) {
             mPhase=Phase::CONTROL;
             setPeriod(mControlPeriod);
+            if (mPendulumAngle < M_PI) {
+                mPendulumSetpoint = 0;
+            } else {
+                mPendulumSetpoint = 2*M_PI;
+            }
+            std::cout << "SETPOINT " << mPendulumSetpoint << std::endl;
         }
     } else {
         if ((mPendulumAngle > (2*M_PI - M_PI/8)) || (mPendulumAngle < (0 + 0.02))){
             mPhase=Phase::CONTROL;
             setPeriod(mControlPeriod);
+            if (mPendulumAngle < M_PI) {
+                mPendulumSetpoint = 0;
+            } else {
+                mPendulumSetpoint = 2*M_PI;
+            }
+            std::cout << "SETPOINT " << mPendulumSetpoint << std::endl;
         }
     }
 }
 
+void Controller::control()
+{
+    static int counter;
+    if (++counter > 10)
+        QCoreApplication::quit();
+    mControlMutex.lock();
+    std::cout << "mCartPosition " << mCartPosition << std::endl;
+    float cartPidCV = mCartPID.control(mCartSetpoint,mCartPosition);
+    std::cout << "cartPidCV " << cartPidCV << std::endl;
+    std::cout << "mPendulumAngle " << mPendulumAngle << std::endl;
+    float pendulumPidCV = mPendulumPID.control(mPendulumSetpoint,mPendulumAngle);
+    std::cout << "pendulumPidCV " << pendulumPidCV << std::endl;
+    mControlValue = pendulumPidCV - cartPidCV;
+    std::cout << "mControlValue " << mControlValue << std::endl;
+    if (mControlValue > 2.5)
+        mControlValue = 2.5;
+    if (mControlValue < -2.5)
+        mControlValue = -2.5;
+    mPendulum.control(mControlValue);
+    mControlMutex.unlock();
+}
+
 void Controller::setPeriod(int period)
 {
+    mControlMutex.lock();
     mControlPeriod = period;
 //    mCartPID.setSamplingTime(period);
 //    mPendulumPID.setSamplingTime(period);
@@ -193,6 +242,7 @@ void Controller::setPeriod(int period)
         mPeriod = period;
         mProfiler.changePeriod(period);
     }
+    mControlMutex.unlock();
 }
 
 

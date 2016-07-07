@@ -1,4 +1,6 @@
 #include "pid.h"
+#include <iostream>
+using namespace std;
 
 PID::PID()
 {
@@ -17,9 +19,13 @@ float PID::control(float SP, float PV)
         mParamsChanged = false;
     }
     float error = SP-PV;
+    cout << "error " << error << endl;
     float p = mKp*error;
+    cout << "p " << p << endl;
     float i = mIPrev + mKi*mTs*error;
+    cout << "i " << i << endl;
     float d = (mKd*mN*(PV - mPVPrev) + mDPrev) / (1 + mN*mTs);
+    cout << "d " << d << endl;
 
     mPVPrev = PV;
     mDPrev = d;
