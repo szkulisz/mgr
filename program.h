@@ -50,6 +50,7 @@ private:
     QTimer mControllerTimer;
     int mControllerTime;
     QTimer mGuiRefreshTimer;
+    bool mIsStarted = false;
 
     void prolongControllerTime();
 };

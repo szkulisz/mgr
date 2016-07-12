@@ -20,20 +20,32 @@ void Controller::run()
             clock_gettime(CLOCK_MONOTONIC, &next);
 //          mProfiler.startProfiling();
             mRunPendulumInit = false;
-//            mPendulum.resetEncoders();
+            mPendulum.resetEncoders();
+            mElapsedTime = 0;
         }
         while (mRunPendulum) {
+            mControlMutex.lock();
+            if (mChangeCartPidParams) {
+                mCartPID.setParameters(mCartFutureParams);
+                mChangeCartPidParams = false;
+            }
+            if (mChangePendulumPidParams) {
+                mPendulumPID.setParameters(mPendulumFutureParams);
+                mChangePendulumPidParams = false;
+            }
+            mControlMutex.unlock();
             timespecAddUs(&next, mPeriod);
             clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &next, NULL);
 //            mProfiler.updatePeriodProfiling();
             mPendulum.readEncoderValues();
-//            mPositionsMutex.lock();
+            mPositionsMutex.lock();
+            mElapsedTime += mPeriod;
             mPendulum.getPositions(mCartPosition, mPendulumAngle);
-//            mPositionsMutex.unlock();
+            mPositionsMutex.unlock();
             switch (mPhase) {
             case
             Phase::SWING_UP:
-//                swingUp();
+                swingUp();
                 break;
             case Phase::CONTROL:
                 control();
@@ -56,17 +68,17 @@ void Controller::run()
 Controller::Controller()
 {
     std::map<std::string, float> params;
-    params["Kp"] = 40.8f;
-    params["Ki"] = 29.6f;
-    params["Kd"] = 2.3f;
+    params["Kp"] = 40.8113f;
+    params["Ki"] = 29.6349f;
+    params["Kd"] = 2.3004f;
     params["N"] = 10;
     params["Ts"] = 0.001;
     params["constr"] = 1;
     params["CVmax"] = 2.5f;
     params["CVmin"] = -2.5f;
     mCartPID.setParameters(params);
-    params["Kp"] = 119.f;
-    params["Ki"] = 241.f;
+    params["Kp"] = 118.5897f;
+    params["Ki"] = 241.0771f;
     params["Kd"] = 10.f;
     mPendulumPID.setParameters(params);
 }
@@ -74,24 +86,25 @@ Controller::Controller()
 float Controller::getCartPosition()
 {
     float temp;
-//    mPositionsMutex.lock();
+    mPositionsMutex.lock();
     temp = mCartPosition;
-//    mPositionsMutex.unlock();
+    mPositionsMutex.unlock();
     return temp;
 }
 
 float Controller::getPendulumAngle()
 {
     float temp;
-//    mPositionsMutex.lock();
+    mPositionsMutex.lock();
     temp = mPendulumAngle;
-//    mPositionsMutex.unlock();
+    mPositionsMutex.unlock();
     return temp;
 }
 
 void Controller::startControlling()
 {
     mPhase = Phase::SWING_UP;
+    mSwingCVMax = 0.5;
     mPeriod = mSwingPeriod;
     mRunPendulumInit = true;
     mRunPendulum = true;
@@ -110,14 +123,16 @@ std::map<string, float> Controller::getPendulumPIDParams()
 void Controller::setCartPIDParams(std::map<string, float> params)
 {
     mControlMutex.lock();
-    mCartPID.setParameters(params);
+    mCartFutureParams = params;
+    mChangeCartPidParams = true;
     mControlMutex.unlock();
 }
 
 void Controller::setPendulumPIDParams(std::map<string, float> params)
 {
     mControlMutex.lock();
-    mPendulumPID.setParameters(params);
+    mPendulumFutureParams = params;
+    mChangeCartPidParams = true;
     mControlMutex.unlock();
 }
 
@@ -135,6 +150,15 @@ void Controller::quit()
 {
     stopControlling();
     finish();
+}
+
+float Controller::getElapsedTime()
+{
+    float temp;
+    mPositionsMutex.lock();
+    temp =  mElapsedTime/1000000;
+    mPositionsMutex.unlock();
+    return temp;
 }
 
 float Controller::getControlValue()
@@ -176,15 +200,17 @@ void Controller::setSamplingFrequency(int freq)
 void Controller::swingUp()
 {
     static float anglePrev;
-    static float uMax = 0.5;
     float deriv;
     int sgn;
     deriv = (mPendulumAngle - anglePrev)/0.01;
     anglePrev = mPendulumAngle;
     sgn = (deriv*cos(mPendulumAngle) >= 0) ? 1 : -1;
-    mPendulum.control(sgn*uMax);
+    mControlMutex.lock();
+    mControlValue = sgn*mSwingCVMax;
+    mControlMutex.unlock();
+    mPendulum.control(sgn*mSwingCVMax);
     if ((mPendulumAngle < M_PI/4) || (mPendulumAngle > (2*M_PI - M_PI/4)))
-        uMax = 0.25;
+        mSwingCVMax = 0.25;
     if (mPendulum.getCartPosition() > 0) {
         if ((mPendulumAngle < M_PI/8) || (mPendulumAngle > (2*M_PI - 0.02))) {
             mPhase=Phase::CONTROL;
@@ -194,7 +220,6 @@ void Controller::swingUp()
             } else {
                 mPendulumSetpoint = 2*M_PI;
             }
-            std::cout << "SETPOINT " << mPendulumSetpoint << std::endl;
         }
     } else {
         if ((mPendulumAngle > (2*M_PI - M_PI/8)) || (mPendulumAngle < (0 + 0.02))){
@@ -205,25 +230,16 @@ void Controller::swingUp()
             } else {
                 mPendulumSetpoint = 2*M_PI;
             }
-            std::cout << "SETPOINT " << mPendulumSetpoint << std::endl;
         }
     }
 }
 
 void Controller::control()
 {
-    static int counter;
-    if (++counter > 10)
-        QCoreApplication::quit();
     mControlMutex.lock();
-    std::cout << "mCartPosition " << mCartPosition << std::endl;
     float cartPidCV = mCartPID.control(mCartSetpoint,mCartPosition);
-    std::cout << "cartPidCV " << cartPidCV << std::endl;
-    std::cout << "mPendulumAngle " << mPendulumAngle << std::endl;
     float pendulumPidCV = mPendulumPID.control(mPendulumSetpoint,mPendulumAngle);
-    std::cout << "pendulumPidCV " << pendulumPidCV << std::endl;
     mControlValue = pendulumPidCV - cartPidCV;
-    std::cout << "mControlValue " << mControlValue << std::endl;
     if (mControlValue > 2.5)
         mControlValue = 2.5;
     if (mControlValue < -2.5)

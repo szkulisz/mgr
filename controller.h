@@ -41,6 +41,7 @@ public:
     float getCartSetpoint() const;
 
     float getControlValue();
+    float getElapsedTime();
 
 public slots:
     void stopControlling();
@@ -49,14 +50,15 @@ public slots:
 
 signals:
 
-//private:
-public:
+private:
     bool mRunController = true;
     bool mRunPendulum = false;
     bool mRunPendulumInit = false;
     int mSwingPeriod = 10000;
+    float mSwingCVMax = 0.5;
     int mControlPeriod = 1000;
     int mPeriod = 1000;
+    float mElapsedTime = 0;
     int mPhase = Phase::NOTHING;
     float mPendulumAngle = 0;
     float mCartPosition = 0;
@@ -69,10 +71,15 @@ public:
     Pendulum mPendulum;
     PID mCartPID;
     PID mPendulumPID;
+    map<string, float> mCartFutureParams;
+    map<string, float> mPendulumFutureParams;
+    bool mChangeCartPidParams = false;
+    bool mChangePendulumPidParams = false;
 
     void swingUp();
     void control();
     void timespecAddUs(struct timespec *t, long us);
+
 };
 
 #endif // PENDULUMCONTROLLER_H
