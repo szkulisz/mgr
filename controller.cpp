@@ -16,13 +16,12 @@ void Controller::run()
     while (mRunController) {
         struct timespec next;
         if (mRunPendulum && mRunPendulumInit) {
-//          mProfiler.startLogging(mPeriod, 1000, false, "logs/test.txt");
             clock_gettime(CLOCK_MONOTONIC, &next);
-//          mProfiler.startProfiling();
             mRunPendulumInit = false;
             mPendulum.resetEncoders();
             mElapsedTime = 0;
         }
+
         while (mRunPendulum) {
             mControlMutex.lock();
             if (mChangeCartPidParams) {
@@ -34,14 +33,16 @@ void Controller::run()
                 mChangePendulumPidParams = false;
             }
             mControlMutex.unlock();
+
             timespecAddUs(&next, mPeriod);
             clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &next, NULL);
-//            mProfiler.updatePeriodProfiling();
-            mPendulum.readEncoderValues();
+
             mPositionsMutex.lock();
+            mPendulum.readEncoderValues();
             mElapsedTime += mPeriod;
             mPendulum.getPositions(mCartPosition, mPendulumAngle);
             mPositionsMutex.unlock();
+
             switch (mPhase) {
             case
             Phase::SWING_UP:
@@ -55,8 +56,6 @@ void Controller::run()
                 mPendulum.control(0);
                 break;
             }
-
-//            mProfiler.updateHandlerTimeProfiling();
         }
         mPendulum.control(0);
         usleep(1000);
