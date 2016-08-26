@@ -49,6 +49,7 @@ public slots:
     void quit();
 
 signals:
+    void paramsChanged();
 
 private:
     bool mRunController = true;

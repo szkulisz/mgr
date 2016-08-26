@@ -48,7 +48,7 @@ int MCP23S17::readRegister(unsigned char adress, unsigned char &reg)
         return status;
     }
 
-    reg = receive[3];
+    reg = receive[2];
     return 0;
 }
 
