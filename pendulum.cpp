@@ -4,7 +4,7 @@
 Pendulum::Pendulum()
 {
     mEncoder = new Encoder();
-    mDAC = new AD5313();
+    mDAC = new AD5313(2,1,100000000,SPIDevice::MODE1);
 }
 
 Pendulum::~Pendulum()
