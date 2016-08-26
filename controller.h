@@ -63,7 +63,7 @@ private:
     float mPendulumAngle = 0;
     float mCartPosition = 0;
     QMutex mPositionsMutex;
-    QMutex mControlMutex;
+    QMutex mParamsMutex;
     float mCartSetpoint = 0;
     float mPendulumSetpoint = 0;
     float mControlValue = 0;
@@ -73,8 +73,8 @@ private:
     PID mPendulumPID;
     map<string, float> mCartFutureParams;
     map<string, float> mPendulumFutureParams;
-    bool mChangeCartPidParams = false;
-    bool mChangePendulumPidParams = false;
+    int mFuturePeriod;
+    bool mChangeParams = false;
 
     void swingUp();
     void control();

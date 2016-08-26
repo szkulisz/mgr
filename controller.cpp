@@ -21,18 +21,27 @@ void Controller::run()
             mPendulum.resetEncoders();
             mElapsedTime = 0;
         }
+        mParamsMutex.lock();
+        if (mChangeParams) {
+            mCartPID.setParameters(mCartFutureParams);
+            mPendulumPID.setParameters(mPendulumFutureParams);
+            setPeriod(mFuturePeriod);
+            emit paramsChanged();
+            mChangeParams = false;
+        }
+        mParamsMutex.unlock();
+
 
         while (mRunPendulum) {
-            mControlMutex.lock();
-            if (mChangeCartPidParams) {
+            mParamsMutex.lock();
+            if (mChangeParams) {
                 mCartPID.setParameters(mCartFutureParams);
-                mChangeCartPidParams = false;
-            }
-            if (mChangePendulumPidParams) {
                 mPendulumPID.setParameters(mPendulumFutureParams);
-                mChangePendulumPidParams = false;
+                setPeriod(mFuturePeriod);
+                emit paramsChanged();
+                mChangeParams = false;
             }
-            mControlMutex.unlock();
+            mParamsMutex.unlock();
 
             timespecAddUs(&next, mPeriod);
             clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &next, NULL);
@@ -121,18 +130,18 @@ std::map<string, float> Controller::getPendulumPIDParams()
 
 void Controller::setCartPIDParams(std::map<string, float> params)
 {
-    mControlMutex.lock();
+    mParamsMutex.lock();
     mCartFutureParams = params;
-    mChangeCartPidParams = true;
-    mControlMutex.unlock();
+    mChangeParams = true;
+    mParamsMutex.unlock();
 }
 
 void Controller::setPendulumPIDParams(std::map<string, float> params)
 {
-    mControlMutex.lock();
+    mParamsMutex.lock();
     mPendulumFutureParams = params;
-    mChangeCartPidParams = true;
-    mControlMutex.unlock();
+    mChangeParams = true;
+    mParamsMutex.unlock();
 }
 
 void Controller::stopControlling()
@@ -163,9 +172,9 @@ float Controller::getElapsedTime()
 float Controller::getControlValue()
 {
     float temp;
-    mControlMutex.lock();
+    mParamsMutex.lock();
     temp =  mControlValue;
-    mControlMutex.unlock();
+    mParamsMutex.unlock();
     return temp;
 }
 
@@ -176,9 +185,9 @@ float Controller::getCartSetpoint() const
 
 void Controller::setCartSetpoint(float cartSetpoint)
 {
-    mControlMutex.lock();
+    mParamsMutex.lock();
     mCartSetpoint = cartSetpoint;
-    mControlMutex.unlock();
+    mParamsMutex.unlock();
 }
 
 int Controller::getPeriod() const
@@ -193,7 +202,8 @@ int Controller::getSamplingFrequency() const
 
 void Controller::setSamplingFrequency(int freq)
 {
-    setPeriod( std::round( (1.f/freq) * 1000000 ));
+    mFuturePeriod = std::round( (1.f/freq) * 1000000 );
+    mChangeParams = true;
 }
 
 void Controller::swingUp()
@@ -204,9 +214,9 @@ void Controller::swingUp()
     deriv = (mPendulumAngle - anglePrev)/0.01;
     anglePrev = mPendulumAngle;
     sgn = (deriv*cos(mPendulumAngle) >= 0) ? 1 : -1;
-    mControlMutex.lock();
+    mParamsMutex.lock();
     mControlValue = sgn*mSwingCVMax;
-    mControlMutex.unlock();
+    mParamsMutex.unlock();
     mPendulum.control(sgn*mSwingCVMax);
     if ((mPendulumAngle < M_PI/4) || (mPendulumAngle > (2*M_PI - M_PI/4)))
         mSwingCVMax = 0.25;
@@ -235,7 +245,7 @@ void Controller::swingUp()
 
 void Controller::control()
 {
-    mControlMutex.lock();
+    mParamsMutex.lock();
     float cartPidCV = mCartPID.control(mCartSetpoint,mCartPosition);
     float pendulumPidCV = mPendulumPID.control(mPendulumSetpoint,mPendulumAngle);
     mControlValue = pendulumPidCV - cartPidCV;
@@ -244,12 +254,11 @@ void Controller::control()
     if (mControlValue < -2.5)
         mControlValue = -2.5;
     mPendulum.control(mControlValue);
-    mControlMutex.unlock();
+    mParamsMutex.unlock();
 }
 
 void Controller::setPeriod(int period)
 {
-    mControlMutex.lock();
     mControlPeriod = period;
 //    mCartPID.setSamplingTime(period);
 //    mPendulumPID.setSamplingTime(period);
@@ -257,7 +266,6 @@ void Controller::setPeriod(int period)
         mPeriod = period;
         mProfiler.changePeriod(period);
     }
-    mControlMutex.unlock();
 }
 
 
