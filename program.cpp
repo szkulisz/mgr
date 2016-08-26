@@ -1,17 +1,16 @@
 #include "program.h"
 #include <cmath>
 #include <unistd.h>
-
+#include <QFile>
 
 Program::Program(QObject *parent) : QObject(parent)
 {
 
 
-
-
 //    mPendulumController.setPeriod(1000);
 //    std::cout << "start" << std::endl;
     mPendulumController.start();
+
 //    mPendulumController.startControlling();
 //    for (int i=0; i<3; ++i){
 //        std::cout << "Cart: " << mPendulumController.getCartPosition() << std::endl;
@@ -26,6 +25,7 @@ Program::Program(QObject *parent) : QObject(parent)
     // create a timer
 
     // setup signal and slot
+    connect(&mPendulumController, SIGNAL(paramsChanged()), this, SLOT(onParamsChanged()));
     connect(&mGuiRefreshTimer, SIGNAL(timeout()),this, SLOT(on_timeout()));
 
     connect(&mControllerTimer, SIGNAL(timeout()), this, SLOT(onControllerTimerTimeout()));
@@ -100,15 +100,9 @@ void Program::readyRead(QString message)
         params["N"] = tokens.at(10).toInt();
         params["Ts"] = std::round( (1.f/tempHz) * 1000000 );
         mPendulumController.setPendulumPIDParams(params);
-        std::map<std::string, float> cartParams = mPendulumController.getCartPIDParams();
-        std::map<std::string, float> pendulumParams = mPendulumController.getPendulumPIDParams();
         mPendulumController.setSamplingFrequency(tokens.at(11).toInt());
 
-        response = QString("ADDR %1 PARAMS %2 %3 %4 %5 %6 %7 %8 %9 %10 ").arg(BROADCAST_ADRESS).
-                arg(cartParams["Kp"]).arg(cartParams["Ki"]).arg(cartParams["Kd"]).arg(cartParams["N"]).
-                arg(pendulumParams["Kp"]).arg(pendulumParams["Ki"]).arg(pendulumParams["Kd"]).arg(pendulumParams["N"]).
-                arg(mPendulumController.getSamplingFrequency());
-        mServer.write(response);
+
 
     } else if ( tokens.at(2).compare("SETPOINT") == 0 ) {
         mPendulumController.setCartSetpoint(tokens.at(3).toInt()/100.f);
@@ -162,6 +156,17 @@ void Program::onControllerTimerTimeout()
         QString message = QString("ADDR %1 CONTROL %2 ").arg(BROADCAST_ADRESS).arg(ControlEnum::Free);
         mServer.write(message);
     }
+}
+
+void Program::onParamsChanged()
+{
+    std::map<std::string, float> cartParams = mPendulumController.getCartPIDParams();
+    std::map<std::string, float> pendulumParams = mPendulumController.getPendulumPIDParams();
+    QString response = QString("ADDR %1 PARAMS %2 %3 %4 %5 %6 %7 %8 %9 %10 ").arg(BROADCAST_ADRESS).
+            arg(cartParams["Kp"]).arg(cartParams["Ki"]).arg(cartParams["Kd"]).arg(cartParams["N"]).
+            arg(pendulumParams["Kp"]).arg(pendulumParams["Ki"]).arg(pendulumParams["Kd"]).arg(pendulumParams["N"]).
+            arg(mPendulumController.getSamplingFrequency());
+    mServer.write(response);
 }
 
 void Program::prolongControllerTime()

@@ -40,6 +40,7 @@ public slots:
     void readyRead(QString message);
     void onNewConnection(qintptr clientAdress);
     void onControllerTimerTimeout();
+    void onParamsChanged();
 
 private:
     Controller mPendulumController;
