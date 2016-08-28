@@ -77,6 +77,8 @@ private:
     int mFuturePeriod;
     bool mChangeParams = false;
 
+    GPIO *mPinProfile;
+
     void swingUp();
     void control();
     void timespecAddUs(struct timespec *t, long us);

@@ -76,7 +76,7 @@ int Profiler::getDifferenceInMicroseconds()
 
 long long Profiler::getDifferenceInNanoseconds()
 {
-    long long periodInNs = mPeriod*1000;
+    static long long periodInNs = mPeriod*1000;
     return (1000000000*mTimerDifference.tv_sec + mTimerDifference.tv_nsec) - periodInNs;
 }
 
@@ -119,7 +119,7 @@ void Profiler::changePeriod(int period)
 
 timespec Profiler::countDifference(timespec start, timespec end)
 {
-    timespec temp;
+    static timespec temp;
     if ((end.tv_nsec-start.tv_nsec)<0) {
         temp.tv_sec = end.tv_sec-start.tv_sec-1;
         temp.tv_nsec = 1000000000+end.tv_nsec-start.tv_nsec;

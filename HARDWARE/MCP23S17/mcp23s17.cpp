@@ -54,17 +54,18 @@ int MCP23S17::readRegister(unsigned char adress, unsigned char &reg)
 
 int MCP23S17::readRegisters(unsigned char firstRegisterAdress, int numberOfRegisters, unsigned char *reg)
 {
+    static int status;
     if(firstRegisterAdress > OLATB){
         return -2;
     }
 
-    unsigned char receive[5 + 2];
+    static unsigned char receive[5 + 2];
     memset(receive, 0, sizeof receive);
 
     mTxBuf[0] = 0b01001111;
     mTxBuf[1] = firstRegisterAdress;
 
-    int status = mDevice->transfer(mTxBuf, receive, numberOfRegisters + 2);
+    status = mDevice->transfer(mTxBuf, receive, numberOfRegisters + 2);
     if (status <= 0){
         return status;
     }

@@ -77,7 +77,7 @@ GPIO::GPIO(int number) {
     }
 }
 
-int GPIO::write(string path, string filename, string value){
+int GPIO::write(string /*path*/, string filename, string value){
 //   ofstream fs;
 //   fs.open((path + filename).c_str());
 //   if (!fs.is_open()){
@@ -111,25 +111,25 @@ int GPIO::write(string path, string filename, string value){
 }
 
 string GPIO::read(string path, string filename){
-   ifstream fs;
+   static ifstream fs;
    fs.open((path + filename).c_str());
    if (!fs.is_open()){
 	   perror("GPIO: read failed to open file ");
     }
-   string input;
+   static string input;
    getline(fs,input);
    fs.close();
    return input;
 }
 
 int GPIO::write(string path, string filename, int value){
-   stringstream s;
+   static stringstream s;
    s << value;
    return this->write(path,filename,s.str());
 }
 
 int GPIO::exportGPIO(){
-    ofstream fs;
+    static ofstream fs;
     fs.open((string(GPIO_PATH)+"export").c_str());
     if (!fs.is_open()){
         perror("GPIO: export failed to open file ");
@@ -142,7 +142,7 @@ int GPIO::exportGPIO(){
 }
 
 int GPIO::unexportGPIO(){
-    ofstream fs;
+    static ofstream fs;
     fs.open((string(GPIO_PATH)+"unexport").c_str());
     if (!fs.is_open()){
         perror("GPIO: unexport failed to open file ");

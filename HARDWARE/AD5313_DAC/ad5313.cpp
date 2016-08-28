@@ -22,7 +22,7 @@ int AD5313::writeVoltage(float voltage, int channel)
         return -1;
     }
 
-    unsigned int reg = (unsigned int) ((voltage*1023)/5);
+    static unsigned int reg = (unsigned int) ((voltage*1023)/5);
     if (channel == 2){
         channel = 8;
     }

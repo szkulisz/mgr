@@ -25,7 +25,7 @@ void Encoder::reset()
 
 int Encoder::readValues(int &cart, int &pend)
 {
-    unsigned char cartMore, cartLess, pendMore, pendLess;
+    static unsigned char cartMore, cartLess, pendMore, pendLess;
     static int cartPrev = 0;
 
     release();
@@ -68,7 +68,8 @@ void Encoder::release()
 
 int Encoder::readBytes(Encoder::BYTE byte, unsigned char &cart, unsigned char &pend)
 {
-    unsigned char valuesert[2];
+    static unsigned char valuesert[2];
+    static int ret;
 //    memset(values, 0, sizeof(values));
 
     mPinEnable-> setValue(HIGH);
@@ -77,7 +78,7 @@ int Encoder::readBytes(Encoder::BYTE byte, unsigned char &cart, unsigned char &p
     }else{
         mPinSelect-> setValue(LOW);
     }
-    int ret = this->mExpander->readRegisters(MCP23S17::GPIOA, 2, valuesert);
+    ret = this->mExpander->readRegisters(MCP23S17::GPIOA, 2, valuesert);
     if (ret<0){
         valuesert[0] = 0xFF;
         valuesert[1] = 0xFF;

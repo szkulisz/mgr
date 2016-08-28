@@ -85,7 +85,8 @@ int SPIDevice::open(){
  * @return -1 on failure
  */
 int SPIDevice::transfer(unsigned char send[], unsigned char receive[], int length){
-	struct spi_ioc_transfer	transfer;
+    static struct spi_ioc_transfer	transfer;
+    static int status;
     memset(&transfer, 0 , sizeof transfer);
 	transfer.tx_buf = (unsigned long) send;
 	transfer.rx_buf = (unsigned long) receive;
@@ -93,7 +94,7 @@ int SPIDevice::transfer(unsigned char send[], unsigned char receive[], int lengt
 	transfer.speed_hz = this->speed;
 	transfer.bits_per_word = this->bits;
 	transfer.delay_usecs = this->delay;
-	int status = ioctl(this->file, SPI_IOC_MESSAGE(1), &transfer);
+    status = ioctl(this->file, SPI_IOC_MESSAGE(1), &transfer);
 	if (status < 0) {
 		perror("SPI: SPI_IOC_MESSAGE Failed");
 		return -1;
@@ -129,7 +130,7 @@ int SPIDevice::write(unsigned char value){
 }
 
 int SPIDevice::write(unsigned char value[], int length){
-	unsigned char null_return = 0x00;
+    static unsigned char null_return = 0x00;
 	this->transfer(value, &null_return, length);
 	return 0;
 }

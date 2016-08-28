@@ -14,6 +14,11 @@ int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
 //    system("/home/szymon/mgr/init.sh");
+    system("config-pin P9.28 spi");
+    system("config-pin P9.29 spi");
+    system("config-pin P9.30 spi");
+    system("config-pin P9.31 spi");
+    system("config-pin P9.42 spics");
 
     int sts;
     struct sched_param param;
@@ -29,4 +34,6 @@ int main(int argc, char *argv[])
     return a.exec();
 //    return 0;
 }
+
+
 
