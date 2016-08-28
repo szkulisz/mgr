@@ -6,7 +6,6 @@
 #include <pthread.h>
 #include <QMutex>
 #include <map>
-#include "profiler.h"
 #include "pendulum.h"
 #include "pid.h"
 
@@ -68,7 +67,6 @@ private:
     float mCartSetpoint = 0;
     float mPendulumSetpoint = 0;
     float mControlValue = 0;
-    Profiler mProfiler;
     Pendulum mPendulum;
     PID mCartPID;
     PID mPendulumPID;
@@ -77,7 +75,6 @@ private:
     int mFuturePeriod;
     bool mChangeParams = false;
 
-    GPIO *mPinProfile;
 
     void swingUp();
     void control();

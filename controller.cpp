@@ -5,9 +5,6 @@
 
 void Controller::run()
 {
-#define PROFILING_LOOPS 10000
-    static int profile_counter;
-
     int sts;
     struct sched_param param;
     sts = sched_getparam(0, &param);
@@ -17,6 +14,7 @@ void Controller::run()
     CHECK(sts,"sched_setscheduler");
     std::cout << "PendulumController has ID: " << QThread::currentThreadId() << " and priority: " << param.sched_priority << std::endl;
     while (mRunController) {
+
         mParamsMutex.lock();
         if (mChangeParams) {
             mCartPID.setParameters(mCartFutureParams);
@@ -29,21 +27,15 @@ void Controller::run()
 
         struct timespec next;
         if (mRunPendulum && mRunPendulumInit) {
-            mProfiler.startLogging(1000, PROFILING_LOOPS, true, "logs/test.txt");
             mRunPendulumInit = false;
             mPendulum.resetEncoders();
             mElapsedTime = 0;
             clock_gettime(CLOCK_MONOTONIC, &next);
         }
-        mPeriod = 1000;
-        mPhase = Phase::CONTROL;
+
         while (mRunPendulum) {
             timespecAddUs(&next, mPeriod);
             clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &next, NULL);
-
-            mPinProfile->setValue(HIGH);
-            if (profile_counter++ < PROFILING_LOOPS)
-                mProfiler.updatePeriodProfiling();
 
             mPositionsMutex.lock();
             mPendulum.readEncoderValues();
@@ -75,18 +67,11 @@ void Controller::run()
             }
             mParamsMutex.unlock();
 
-            if (profile_counter < PROFILING_LOOPS) {
-                mProfiler.updateHandlerTimeProfiling();
-            } else {
-                QCoreApplication::quit();
-            }
-            mPinProfile->setValue(LOW);
         }
         mPendulum.control(0);
         usleep(1000);
     }
     mPendulum.control(0);
-    mProfiler.saveLogFile();
 }
 
 Controller::Controller()
@@ -106,8 +91,6 @@ Controller::Controller()
     params["Kd"] = 10.f;
     mPendulumPID.setParameters(params);
 
-    mPinProfile = new GPIO(36);
-    mPinProfile->setDirection(OUTPUT);
 }
 
 float Controller::getCartPosition()
@@ -243,7 +226,6 @@ void Controller::swingUp()
         if ((mPendulumAngle < M_PI/8) || (mPendulumAngle > (2*M_PI - 0.02))) {
             mPhase=Phase::CONTROL;
             setPeriod(mControlPeriod);
-            mProfiler.startProfiling();
             if (mPendulumAngle < M_PI) {
                 mPendulumSetpoint = 0;
             } else {
@@ -254,7 +236,6 @@ void Controller::swingUp()
         if ((mPendulumAngle > (2*M_PI - M_PI/8)) || (mPendulumAngle < (0 + 0.02))){
             mPhase=Phase::CONTROL;
             setPeriod(mControlPeriod);
-            mProfiler.startProfiling();
             if (mPendulumAngle < M_PI) {
                 mPendulumSetpoint = 0;
             } else {
@@ -285,7 +266,6 @@ void Controller::setPeriod(int period)
 //    mPendulumPID.setSamplingTime(period);
     if (!(mPhase == Phase::SWING_UP) && !(mPhase == Phase::SWING_DOWN)) {
         mPeriod = period;
-        mProfiler.changePeriod(period);
     }
 }
 
