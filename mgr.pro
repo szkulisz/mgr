@@ -1,8 +1,8 @@
 QT += core sql network
 QT -= gui
 
-TARGET = mgr
-    target.files = mgr
+TARGET = 2profiling_mgr
+    target.files = 2profiling_mgr
     target.path = /home/szymon/mgr/mgr_program
 INSTALLS += target
 

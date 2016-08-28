@@ -25,13 +25,19 @@ void Encoder::reset()
 
 int Encoder::readValues(int &cart, int &pend)
 {
-    static unsigned char cartMore, cartLess, pendMore, pendLess;
+    static unsigned char cartMore, cartLess, pendMore, pendLess, valuesert[2];
     static int cartPrev = 0;
 
-    release();
-    readBytes(MORE, cartMore, pendMore);
-    readBytes(LESS, cartLess, pendLess);
-
+    mPinEnable-> setValue(HIGH);
+    mPinSelect-> setValue(HIGH);
+    this->mExpander->readRegisters(MCP23S17::GPIOA, 2, valuesert);
+    cartMore = valuesert[0];
+    pendMore = valuesert[1];
+    mPinSelect-> setValue(LOW);
+    this->mExpander->readRegisters(MCP23S17::GPIOA, 2, valuesert);
+    cartLess = valuesert[0];
+    pendLess = valuesert[1];
+    mPinEnable-> setValue(LOW);
     cart = cartMore;
     cart <<= 8;
     cart += cartLess;
@@ -56,7 +62,6 @@ int Encoder::readValues(int &cart, int &pend)
         pend |= 0xFFFF8000;
     }
 
-    release();
     return 0;
 }
 
