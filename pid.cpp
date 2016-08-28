@@ -67,7 +67,7 @@ map<string, float> PID::getParameters()
     return params;
 }
 
-void PID::stop()
+void PID::reset()
 {
     mIPrev = 0;
     mDPrev = 0;

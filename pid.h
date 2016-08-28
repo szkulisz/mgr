@@ -14,7 +14,7 @@ public:
     float control(float SP, float PV);
     void setParameters(map<string, float> params);
     map<string, float> getParameters();
-    void stop();
+    void reset();
 
     float getSamplingTime() const;
     void setSamplingTime(float ts);

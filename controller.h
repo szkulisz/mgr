@@ -55,7 +55,7 @@ private:
     bool mRunPendulum = false;
     bool mRunPendulumInit = false;
     int mSwingPeriod = 10000;
-    float mSwingCVMax = 0.5;
+    float mSwingCVMax = 0.7;
     int mControlPeriod = 1000;
     int mPeriod = 1000;
     float mElapsedTime = 0;

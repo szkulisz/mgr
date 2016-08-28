@@ -133,7 +133,13 @@ std::map<string, float> Controller::getPendulumPIDParams()
 void Controller::setCartPIDParams(std::map<string, float> params)
 {
     mParamsMutex.lock();
+    static map<string, float>::iterator it;
+    it = params.find("Ts");
+    if (it != params.end())
+        it->second = 1/it->second;
+    mChangeParams = true;
     mCartFutureParams = params;
+\
     mChangeParams = true;
     mParamsMutex.unlock();
 }
@@ -141,8 +147,12 @@ void Controller::setCartPIDParams(std::map<string, float> params)
 void Controller::setPendulumPIDParams(std::map<string, float> params)
 {
     mParamsMutex.lock();
-    mPendulumFutureParams = params;
+    static map<string, float>::iterator it;
+    it = params.find("Ts");
+    if (it != params.end())
+        it->second = 1/it->second;
     mChangeParams = true;
+    mPendulumFutureParams = params;
     mParamsMutex.unlock();
 }
 
@@ -220,12 +230,16 @@ void Controller::swingUp()
     mControlValue = sgn*mSwingCVMax;
     mParamsMutex.unlock();
     mPendulum.control(sgn*mSwingCVMax);
+
     if ((mPendulumAngle < M_PI/4) || (mPendulumAngle > (2*M_PI - M_PI/4)))
         mSwingCVMax = 0.25;
+
     if (mPendulum.getCartPosition() > 0) {
         if ((mPendulumAngle < M_PI/8) || (mPendulumAngle > (2*M_PI - 0.02))) {
             mPhase=Phase::CONTROL;
             setPeriod(mControlPeriod);
+            mCartPID.reset();
+            mPendulumPID.reset();
             if (mPendulumAngle < M_PI) {
                 mPendulumSetpoint = 0;
             } else {
@@ -236,6 +250,8 @@ void Controller::swingUp()
         if ((mPendulumAngle > (2*M_PI - M_PI/8)) || (mPendulumAngle < (0 + 0.02))){
             mPhase=Phase::CONTROL;
             setPeriod(mControlPeriod);
+            mCartPID.reset();
+            mPendulumPID.reset();
             if (mPendulumAngle < M_PI) {
                 mPendulumSetpoint = 0;
             } else {
