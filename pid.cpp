@@ -14,14 +14,15 @@ PID::PID(map<string, float> params)
 
 float PID::control(float SP, float PV)
 {
+    static float error, p, i, d;
     if (mParamsChanged) {
         mPVPrev = PV;
         mParamsChanged = false;
     }
-    static float error = SP-PV;
-    static float p = mKp*error;
-    static float i = mIPrev + mKi*mTs*error;
-    static float d = (mKd*mN*(PV - mPVPrev) + mDPrev) / (1 + mN*mTs);
+    error = SP-PV;
+    p = mKp*error;
+    i = mIPrev + mKi*mTs*error;
+    d = (mKd*mN*(PV - mPVPrev) + mDPrev) / (1 + mN*mTs);
 
     mPVPrev = PV;
     mDPrev = d;
@@ -36,7 +37,8 @@ void PID::setParameters(map<string, float> params)
     mKi = params["Ki"];
     mKd = params["Kd"];
     mN = params["N"];
-    static map<string, float>::iterator it = params.find("Ts");
+    static map<string, float>::iterator it;
+    it = params.find("Ts");
     if (it != params.end())
         mTs = params["Ts"];
     it = params.find("constr");

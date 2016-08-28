@@ -5,7 +5,7 @@ using namespace exploringBB;
 
 Encoder::Encoder()
 {
-    mExpander = new MCP23S17(2,0,100000000,SPIDevice::MODE1);
+    mExpander = new MCP23S17(2,0,7500000,SPIDevice::MODE1);
     mPinEnable = new GPIO(49);
     mPinReset = new GPIO(14);
     mPinSelect = new GPIO(115);
