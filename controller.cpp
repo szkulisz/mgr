@@ -247,9 +247,11 @@ void Controller::swingUp()
 
 void Controller::control()
 {
+    static float cartPidCV;
+    static float pendulumPidCV;
     mParamsMutex.lock();
-    static float cartPidCV = mCartPID.control(mCartSetpoint,mCartPosition);
-    static float pendulumPidCV = mPendulumPID.control(mPendulumSetpoint,mPendulumAngle);
+    cartPidCV = mCartPID.control(mCartSetpoint,mCartPosition);
+    pendulumPidCV = mPendulumPID.control(mPendulumSetpoint,mPendulumAngle);
     mControlValue = pendulumPidCV - cartPidCV;
     if (mControlValue > 2.5)
         mControlValue = 2.5;

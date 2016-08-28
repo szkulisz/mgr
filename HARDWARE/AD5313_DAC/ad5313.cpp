@@ -18,11 +18,13 @@ AD5313::AD5313(unsigned int bus, unsigned int deviceNumber, unsigned int speed, 
 }
 int AD5313::writeVoltage(float voltage, int channel)
 {
+    static unsigned int reg;
+
     if (voltage<0.0f || voltage>5.0f){
         return -1;
     }
 
-    static unsigned int reg = (unsigned int) ((voltage*1023)/5);
+    reg = (unsigned int) ((voltage*1023)/5);
     if (channel == 2){
         channel = 8;
     }

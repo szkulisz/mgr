@@ -76,7 +76,8 @@ int Profiler::getDifferenceInMicroseconds()
 
 long long Profiler::getDifferenceInNanoseconds()
 {
-    static long long periodInNs = mPeriod*1000;
+    static long long periodInNs;
+    periodInNs = mPeriod*1000;
     return (1000000000*mTimerDifference.tv_sec + mTimerDifference.tv_nsec) - periodInNs;
 }
 
